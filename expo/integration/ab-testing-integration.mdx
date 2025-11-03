@@ -1,0 +1,13 @@
+---
+title: "A/B Testing Integration"
+description: "Create experiments and consume variants programmatically"
+---
+
+```ts
+const variant = RampKit.getActiveVariant("onboarding_flow");
+if (variant === "B") {
+  analytics.logEvent("variant_B_seen");
+}
+```
+
+Variants automatically propagate through the editor.

@@ -1,0 +1,20 @@
+title: "RampKit.setUserAttributes(data)"
+description: "Pass user-level attributes for personalization, targeting, and analytics"
+
+---
+
+```ts
+RampKit.setUserAttributes({
+  locale: "en_CA",
+  age: 26,
+  campaign_source: "tiktok_ads",
+  hasTrial: false,
+});
+```
+
+RampKit merges attributes with flow-level variables automatically.
+
+**When to use**
+
+- Before loading a flow (preferred)
+- After login, to persist user info across sessions

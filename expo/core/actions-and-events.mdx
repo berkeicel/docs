@@ -1,0 +1,19 @@
+---
+title: "Actions & Events"
+description: "Define what happens on taps, inputs, or conditions"
+---
+
+Every button, toggle, or input in your flow can:
+
+- set variables
+- navigate to another screen
+- trigger an SDK event
+- or complete the flow
+
+You can also listen for these events in your app:
+
+```ts
+RampKit.on("flow_complete", (data) => {
+  console.log("Flow finished:", data);
+});
+```

@@ -1,0 +1,17 @@
+---
+title: "RampKit.getVariables() / setVariable(key, value)"
+description: "Read or update runtime variables shared between SDK and WebViews"
+---
+
+```ts
+const vars = RampKit.getVariables();
+console.log(vars.currentStep); // e.g. "question_3"
+
+RampKit.setVariable("goal", "lose_weight");
+```
+
+**Notes**
+
+- Variables persist across screens within a flow
+- Changing variables in native code immediately updates the web layer
+- Use variables for conditional logic in your editor (e.g., showing different screens based on goal)

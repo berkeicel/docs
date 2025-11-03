@@ -1,0 +1,19 @@
+---
+title: "Load Your First Flow"
+description: "Render a live onboarding with RampKit.loadFlow(...)"
+---
+
+To render a live onboarding:
+
+```ts
+await RampKit.loadFlow("onboarding_main", {
+  onComplete: () => {
+    navigation.replace("Home");
+  },
+  onExit: () => {
+    console.log("User exited onboarding");
+  },
+});
+```
+
+You can load flows from anywhere — it’s a single line, no wrapper components required.

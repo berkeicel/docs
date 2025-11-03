@@ -1,0 +1,24 @@
+---
+title: "RampKit.on(event, callback) / off(event)"
+description: "Listen to real-time flow events"
+---
+
+```ts
+RampKit.on("variable_change", (payload) => {
+  console.log("Updated variable:", payload);
+});
+
+RampKit.on("flow_complete", (data) => {
+  analytics.logEvent("onboarding_finished", data);
+});
+```
+
+**Available events**
+
+- `flow_start` — When a flow begins loading
+- `flow_complete` — When a flow finishes successfully
+- `flow_exit` — When user exits early
+- `variable_change` — When a variable is updated
+- `screen_view` — When a new screen is shown
+
+Use `RampKit.off(event)` to remove listeners when unmounting components.

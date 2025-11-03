@@ -1,0 +1,11 @@
+---
+title: "Navigation Hooks"
+description: "Control app navigation when a flow ends"
+---
+
+```ts
+RampKit.loadFlow("intro", {
+  onComplete: () => navigation.replace("Home"),
+  onExit: () => navigation.navigate("Signup"),
+});
+```

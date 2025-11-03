@@ -1,0 +1,13 @@
+---
+title: "Analytics Forwarding"
+description: "Forward events to Mixpanel, Firebase, Amplitude, or Segment"
+---
+
+```ts
+RampKit.forwardEventsTo("firebase", {
+  mapEvents: {
+    flow_complete: "onboarding_completed",
+    screen_view: "onboarding_step",
+  },
+});
+```

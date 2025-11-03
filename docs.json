@@ -11,65 +11,131 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "SDKs",
         "groups": [
           {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
+            "group": "SDKs",
+            "pages": ["sdks/index"]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "iOS SDK",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "iOS SDK",
+            "pages": ["ios-sdk/index"]
+          }
+        ]
+      },
+      {
+        "tab": "Expo SDK",
+        "groups": [
+          {
+            "group": "Quickstart",
             "pages": [
-              "api-reference/introduction"
+              "expo/quickstart/install",
+              "expo/quickstart/initialize",
+              "expo/quickstart/load-first-flow",
+              "expo/quickstart/preview-mode"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Core Concepts",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "expo/core/flows-and-screens",
+              "expo/core/variables-and-state",
+              "expo/core/actions-and-events",
+              "expo/core/bridge-communication"
             ]
+          },
+          {
+            "group": "SDK Reference",
+            "pages": [
+              "expo/sdk/init",
+              "expo/sdk/load-flow",
+              "expo/sdk/set-user-attributes",
+              "expo/sdk/variables",
+              "expo/sdk/events",
+              "expo/sdk/reset",
+              "expo/sdk/enable-debug",
+              "expo/sdk/get-active-session",
+              "expo/sdk/forward-events",
+              "expo/sdk/get-version"
+            ]
+          },
+          {
+            "group": "Integration",
+            "pages": [
+              "expo/integration/inject-user-attributes",
+              "expo/integration/dynamic-targeting",
+              "expo/integration/navigation-hooks",
+              "expo/integration/offline-handling",
+              "expo/integration/revenuecat",
+              "expo/integration/ab-testing-integration",
+              "expo/integration/analytics-forwarding",
+              "expo/integration/deep-linking",
+              "expo/integration/server-sync",
+              "expo/integration/web-checkout",
+              "expo/integration/lifecycle-management"
+            ]
+          },
+          {
+            "group": "Optimization",
+            "pages": [
+              "expo/optimization/ab-testing",
+              "expo/optimization/conversion-analytics",
+              "expo/optimization/ai-forecasts",
+              "expo/optimization/event-forwarding"
+            ]
+          },
+          {
+            "group": "Developer Tools",
+            "pages": [
+              "expo/dev-tools/local-preview",
+              "expo/dev-tools/live-edits",
+              "expo/dev-tools/debug-console",
+              "expo/dev-tools/mock-attributes"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "expo/advanced/custom-variable-injection",
+              "expo/advanced/runtime-overrides",
+              "expo/advanced/security"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "expo/guides/revenuecat-integration",
+              "expo/guides/expo-setup",
+              "expo/guides/migrating-from-native",
+              "expo/guides/version-control"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "expo/troubleshooting/common-errors",
+              "expo/troubleshooting/debug-tips"
+            ]
+          },
+          {
+            "group": "Example App",
+            "pages": ["expo/example-app/minimal-expo"]
           }
         ]
       }
     ],
     "global": {
       "anchors": [
+        {
+          "anchor": "Welcome",
+          "href": "https://mintlify.com/docs",
+          "icon": "home"
+        },
         {
           "anchor": "Documentation",
           "href": "https://mintlify.com/docs",
@@ -91,32 +157,30 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:hello@rampkit.com"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "href": "https://rampkit.com"
     }
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/mintlify"
     }
   }
 }

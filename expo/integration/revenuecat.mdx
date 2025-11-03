@@ -1,0 +1,21 @@
+---
+title: "RevenueCat Integration"
+description: "Trigger purchases directly via RevenueCat from flows"
+---
+
+```ts
+import { Purchases } from "react-native-purchases";
+import { RampKit } from "rampkit-expo";
+
+RampKit.on("purchase_request", async (payload) => {
+  try {
+    const pkg = await Purchases.getPackage(payload.packageId);
+    const result = await Purchases.purchasePackage(pkg);
+    RampKit.setVariable("purchase_status", "success");
+  } catch (e) {
+    RampKit.setVariable("purchase_status", "failed");
+  }
+});
+```
+
+Use RampKit’s editor to set buttons with action `purchase_request` and pass `packageId`.

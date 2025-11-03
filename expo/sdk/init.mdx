@@ -1,0 +1,31 @@
+---
+title: "RampKit.init(config)"
+description: "Initializes the SDK. Call once before any other method"
+---
+
+RampKit is a lightweight singleton SDK. Once initialized, it can be accessed from anywhere in your app.
+
+Initializes the SDK. Must be called once before any other method. Handles environment setup, analytics registration, and caching.
+
+```ts
+import { RampKit } from "rampkit-expo";
+
+RampKit.init({
+  apiKey: "YOUR_PROJECT_KEY",
+  environment: __DEV__ ? "sandbox" : "production",
+  cacheEnabled: true,
+  logLevel: "warn",
+});
+```
+
+**Parameters**
+
+- **apiKey** — required
+- **environment** — "sandbox" or "production"
+- **cacheEnabled** — boolean (optional) — Enables client-side caching of flows
+- **logLevel** — "silent", "warn", or "debug" — Controls verbosity of logs
+
+**Notes**
+
+- Call `RampKit.init()` before rendering any screens.
+- Safe to call multiple times — the SDK ignores reinitialization.

@@ -1,0 +1,14 @@
+---
+title: "RevenueCat Integration"
+description: "Trigger purchases directly within RampKit screens"
+---
+
+Trigger purchases directly from RampKit buttons using your RevenueCat SDK.
+
+```ts
+RampKit.on("purchase_triggered", async (data) => {
+  await Purchases.purchasePackage(data.package);
+});
+```
+
+RampKit can also sync post-purchase events to update the flow in real time.

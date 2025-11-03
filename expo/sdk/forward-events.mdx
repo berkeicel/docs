@@ -1,0 +1,16 @@
+---
+title: "RampKit.forwardEventsTo(provider, config)"
+description: "Automatically forward analytics events to other tools"
+---
+
+```ts
+RampKit.forwardEventsTo("mixpanel", {
+  apiKey: "MIXPANEL_KEY",
+  mapEvents: {
+    flow_complete: "Onboarding Completed",
+    screen_view: "Onboarding Step Viewed",
+  },
+});
+```
+
+Supported providers: `mixpanel`, `amplitude`, `firebase`, `segment`.

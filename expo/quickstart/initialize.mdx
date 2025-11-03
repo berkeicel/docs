@@ -1,0 +1,21 @@
+---
+title: "Initialize RampKit"
+description: "Initialize once at app startup with your project key"
+---
+
+Initialization should happen once at app startup, ideally in your `App.tsx` or `index.js`:
+
+```ts
+import { RampKit } from "rampkit-expo";
+
+RampKit.init({
+  apiKey: "YOUR_PROJECT_KEY",
+  environment: "production", // or 'sandbox'
+});
+```
+
+RampKit automatically handles caching and analytics once initialized. If you need to test a draft flow, use:
+
+```ts
+RampKit.setPreviewKey("YOUR_PREVIEW_TOKEN");
+```

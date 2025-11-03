@@ -1,0 +1,37 @@
+title: "RampKit.loadFlow(id, options)"
+description: "Loads and displays an onboarding flow with lifecycle callbacks"
+
+---
+
+Loads and displays a full onboarding flow inside a native WebView. Automatically handles navigation, event forwarding, and variable sync.
+
+```ts
+await RampKit.loadFlow("main_onboarding", {
+  onStart: () => console.log("Flow started"),
+  onComplete: (data) => console.log("Flow completed", data),
+  onExit: () => console.log("User exited early"),
+  appearance: {
+    backgroundColor: "#ffffff",
+    safeArea: true,
+  },
+  variables: {
+    userGoal: "improve_skin",
+    platform: "iOS",
+  },
+});
+```
+
+**Parameters**
+
+- **id** — string — Flow ID from the RampKit dashboard
+- **onStart** — function — Called when the flow is loaded
+- **onComplete** — function — Called when the user finishes
+- **onExit** — function — Called when user closes the flow
+- **variables** — object — Optional starting variable map
+- **appearance** — object — Override styling such as background color, margins
+
+**Best practices**
+
+- Handle navigation in `onComplete` (e.g., route to home)
+- Keep variable names consistent with editor variables
+- Combine with `RampKit.setUserAttributes()` for personalization

@@ -1,0 +1,14 @@
+---
+title: "Variables & State"
+description: "Manage shared data across screens and sync with your app"
+---
+
+RampKit maintains a global variable map shared across screens and WebViews.
+
+```ts
+RampKit.setVariable("goal", "lose_weight");
+const vars = RampKit.getVariables();
+console.log(vars.goal);
+```
+
+Variables can be set via user actions in the flow editor or injected programmatically from your app.

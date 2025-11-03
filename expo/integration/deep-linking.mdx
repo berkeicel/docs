@@ -1,0 +1,11 @@
+---
+title: "Deep Linking"
+description: "Trigger flows from deep links"
+---
+
+```ts
+Linking.addEventListener("url", (event) => {
+  const flow = event.url.split("flow=")[1];
+  if (flow) RampKit.loadFlow(flow);
+});
+```
