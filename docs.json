@@ -149,6 +149,14 @@
       ]
     }
   },
+  "feedback": {
+    "suggestEdit": true,
+    "raiseIssue": true
+  },
+  "modeToggle": {
+    "default": "dark",
+    "isHidden": true
+  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
