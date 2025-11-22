@@ -1,0 +1,40 @@
+---
+title: "Install"
+description: "Install the RampKit iOS SDK"
+---
+
+## Install
+
+Install the iOS SDK using Swift Package Manager (SPM).
+
+1. In Xcode, go to File → Add Packages…
+2. Enter the package URL and add the dependency:
+   - Repository: https://github.com/getrampkit/rampkit-ios
+3. Add the package to your app target (App and any extensions that need RampKit).
+
+Alternatively, with a Package.swift:
+
+```swift
+// swift-tools-version: 5.9
+import PackageDescription
+
+let package = Package(
+  name: "YourApp",
+  platforms: [.iOS(.v14)],
+  dependencies: [
+    .package(url: "https://github.com/getrampkit/rampkit-ios", from: "0.1.0")
+  ],
+  targets: [
+    .target(
+      name: "YourApp",
+      dependencies: [
+        .product(name: "RampKit", package: "rampkit-ios")
+      ]
+    )
+  ]
+)
+```
+
+> Using CocoaPods? Add `pod 'RampKit'` then `pod install`.
+
+

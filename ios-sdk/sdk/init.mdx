@@ -1,0 +1,25 @@
+---
+title: "init"
+description: "Initialize the RampKit iOS SDK"
+---
+
+## init
+
+```swift
+RampKit.initSdk(
+  apiKey: "YOUR_API_KEY",
+  environment: .production,
+  autoShowOnboarding: false,
+  onOnboardingFinished: { payload in
+    print("Flow finished with payload: \(payload)")
+  }
+)
+```
+
+Parameters:
+
+- `apiKey` (String): Found in the RampKit dashboard
+- `environment` (Enum): `.production` or `.staging`
+- `autoShowOnboarding` (Bool): If true, automatically present when data is available
+- `onOnboardingFinished` (Closure): Completion callback with payload
+

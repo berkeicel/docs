@@ -1,0 +1,27 @@
+---
+title: "Bridge communication"
+description: "Communicating between app and RampKit on iOS"
+---
+
+## Bridge communication
+
+Exchange data between your app and RampKit to power dynamic experiences.
+
+- Send context in real time via `setUserAttributes`
+- Read variables to adapt UI around the flow
+- Subscribe to events to react to user actions
+
+```swift
+RampKit.setUserAttributes(["balance": 25.0, "currency": "USD"])
+
+let title = RampKit.variable("paywallTitle") ?? "Go Pro"
+
+RampKit.onEvent { event in
+  if event.type == .flowCompleted {
+    // Unlock feature
+    FeatureFlags.shared.set("pro", enabled: true)
+  }
+}
+```
+
+

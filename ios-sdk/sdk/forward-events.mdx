@@ -1,0 +1,21 @@
+---
+title: "forwardEvents"
+description: "Forward events to your analytics on iOS"
+---
+
+## forwardEvents
+
+```swift
+RampKit.forwardEvents(to: .custom { event in
+  // forward to analytics
+})
+```
+
+Forward to a specific provider:
+
+```swift
+RampKit.forwardEvents(to: .segment)
+// or
+RampKit.forwardEvents(to: .amplitude)
+```
+

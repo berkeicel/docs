@@ -1,0 +1,23 @@
+---
+title: "events"
+description: "Track and subscribe to events on iOS"
+---
+
+## events
+
+```swift
+RampKit.onEvent { event in
+  // handle event
+}
+```
+
+Event types include: `flowStarted`, `screenShown`, `ctaTapped`, `purchaseCompleted`, `flowCompleted`, and more.
+
+Forward to analytics:
+
+```swift
+RampKit.onEvent { event in
+  Analytics.track(event.type.rawValue, properties: event.properties)
+}
+```
+

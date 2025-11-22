@@ -1,0 +1,22 @@
+---
+title: "setUserAttributes"
+description: "Set user attributes on iOS"
+---
+
+## setUserAttributes
+
+```swift
+RampKit.setUserAttributes([
+  "plan": "pro",
+  "country": "US"
+])
+```
+
+Merges with existing attributes. Accepts String, Number, Bool values.
+
+Clear an attribute by setting `NSNull()`:
+
+```swift
+RampKit.setUserAttributes(["plan": NSNull()])
+```
+

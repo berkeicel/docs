@@ -1,0 +1,27 @@
+---
+title: "Variables and state"
+description: "Manage variables and state in iOS"
+---
+
+## Variables and state
+
+Use variables to personalize flows on iOS. Values are synced from the app to RampKit and referenced in the builder.
+
+Set user attributes at runtime:
+
+```swift
+RampKit.setUserAttributes([
+  "plan": "pro",
+  "country": "US",
+  "daysSinceInstall": 3
+])
+```
+
+Read variables inside your app:
+
+```swift
+let headline = RampKit.variable("paywallHeadline") ?? "Upgrade"
+let cta = RampKit.variable("primaryCta") ?? "Continue"
+```
+
+

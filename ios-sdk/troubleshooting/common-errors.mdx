@@ -1,0 +1,24 @@
+---
+title: "Common errors"
+description: "Common issues and fixes on iOS"
+---
+
+## Common errors
+
+Troubleshoot frequent setup and runtime issues.
+
+### Package not found (SPM)
+- Ensure the URL is correct: `https://github.com/getrampkit/rampkit-ios`
+- Xcode → File → Packages → Reset Package Caches
+
+### No flows presented
+- Verify `apiKey` and `environment`
+- Confirm a published flow matches your targeting conditions
+- Try `autoShowOnboarding: true` to validate data is available
+
+### Events not appearing
+- Check device network connectivity
+- Enable debug logs: `RampKit.enableDebug(previewMode: false)`
+- Inspect console output for event payloads
+
+

@@ -1,0 +1,26 @@
+---
+title: "Actions and events"
+description: "Trigger actions and listen to events on iOS"
+---
+
+## Actions and events
+
+Capture user interactions and trigger navigation or updates in response. Subscribe to SDK events to observe flow lifecycle and user actions.
+
+```swift
+RampKit.onEvent { event in
+  switch event.type {
+  case .flowStarted:
+    print("Flow started: \(event.flowId ?? "")")
+  case .screenShown:
+    print("Screen: \(event.screenId ?? "")")
+  case .purchaseCompleted:
+    // Forward to analytics
+    Analytics.track("purchase_completed", properties: event.properties)
+  default:
+    break
+  }
+}
+```
+
+

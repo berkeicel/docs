@@ -11,11 +11,11 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "SDKs",
+        "tab": "Overview",
         "groups": [
           {
-            "group": "SDKs",
-            "pages": ["sdks/index"]
+            "group": "Overview",
+            "pages": ["index", "quickstart"]
           }
         ]
       },
@@ -23,8 +23,99 @@
         "tab": "iOS SDK",
         "groups": [
           {
-            "group": "iOS SDK",
-            "pages": ["ios-sdk/index"]
+            "group": "Quickstart",
+            "pages": [
+              "ios-sdk/quickstart/install",
+              "ios-sdk/quickstart/initialize",
+              "ios-sdk/quickstart/load-first-flow",
+              "ios-sdk/quickstart/preview-mode"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "ios-sdk/core/flows-and-screens",
+              "ios-sdk/core/variables-and-state",
+              "ios-sdk/core/actions-and-events",
+              "ios-sdk/core/bridge-communication"
+            ]
+          },
+          {
+            "group": "SDK Reference",
+            "pages": [
+              "ios-sdk/sdk/init",
+              "ios-sdk/sdk/load-flow",
+              "ios-sdk/sdk/set-user-attributes",
+              "ios-sdk/sdk/variables",
+              "ios-sdk/sdk/events",
+              "ios-sdk/sdk/reset",
+              "ios-sdk/sdk/enable-debug",
+              "ios-sdk/sdk/get-active-session",
+              "ios-sdk/sdk/forward-events",
+              "ios-sdk/sdk/get-version"
+            ]
+          },
+          {
+            "group": "Integration",
+            "pages": [
+              "ios-sdk/integration/inject-user-attributes",
+              "ios-sdk/integration/dynamic-targeting",
+              "ios-sdk/integration/navigation-hooks",
+              "ios-sdk/integration/offline-handling",
+              "ios-sdk/integration/revenuecat",
+              "ios-sdk/integration/ab-testing-integration",
+              "ios-sdk/integration/analytics-forwarding",
+              "ios-sdk/integration/deep-linking",
+              "ios-sdk/integration/server-sync",
+              "ios-sdk/integration/web-checkout",
+              "ios-sdk/integration/lifecycle-management"
+            ]
+          },
+          {
+            "group": "Optimization",
+            "pages": [
+              "ios-sdk/optimization/ab-testing",
+              "ios-sdk/optimization/conversion-analytics",
+              "ios-sdk/optimization/ai-forecasts",
+              "ios-sdk/optimization/event-forwarding"
+            ]
+          },
+          {
+            "group": "Developer Tools",
+            "pages": [
+              "ios-sdk/dev-tools/local-preview",
+              "ios-sdk/dev-tools/live-edits",
+              "ios-sdk/dev-tools/debug-console",
+              "ios-sdk/dev-tools/mock-attributes"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "ios-sdk/advanced/custom-variable-injection",
+              "ios-sdk/advanced/runtime-overrides",
+              "ios-sdk/advanced/security"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "ios-sdk/guides/revenuecat-integration",
+              "ios-sdk/guides/ios-setup",
+              "ios-sdk/guides/migrating-from-native",
+              "ios-sdk/guides/version-control"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "ios-sdk/troubleshooting/common-errors",
+              "ios-sdk/troubleshooting/debug-tips"
+            ]
+          },
+          {
+            "group": "Example App",
+            "pages": ["ios-sdk/example-app/minimal-ios"]
           }
         ]
       },
@@ -127,26 +218,28 @@
             "pages": ["expo/example-app/minimal-expo"]
           }
         ]
+      },
+      {
+        "tab": "Android SDK",
+        "groups": [
+          {
+            "group": "Android SDK",
+            "pages": ["android-sdk/index"]
+          }
+        ]
+      },
+      {
+        "tab": "Flutter SDK",
+        "groups": [
+          {
+            "group": "Flutter SDK",
+            "pages": ["flutter-sdk/index"]
+          }
+        ]
       }
     ],
     "global": {
-      "anchors": [
-        {
-          "anchor": "Welcome",
-          "href": "https://mintlify.com/docs",
-          "icon": "home"
-        },
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
+      "anchors": []
     }
   },
   "feedback": {
@@ -188,7 +281,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/mintlify"
+      "github": "https://github.com/getrampkit/rampkit-expo"
     }
   }
 }

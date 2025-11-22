@@ -1,0 +1,35 @@
+---
+title: "Load your first flow"
+description: "Present an onboarding flow with the iOS SDK"
+---
+
+## Load your first flow
+
+After initialization, present a flow anywhere in your app:
+
+```swift
+import RampKit
+
+// For example, from a button tap
+RampKit.showOnboarding()
+```
+
+Target a specific flow or screen:
+
+```swift
+// Optional: provide identifiers configured in the RampKit dashboard
+RampKit.showOnboarding(flowId: "onboarding_v2", startScreenId: "welcome")
+```
+
+Pass context for personalization:
+
+```swift
+RampKit.setUserAttributes([
+  "plan": "pro",
+  "country": "US",
+  "hasTrial": true
+])
+RampKit.showOnboarding()
+```
+
+

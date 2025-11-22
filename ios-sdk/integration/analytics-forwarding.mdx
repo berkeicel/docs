@@ -1,0 +1,24 @@
+---
+title: "Analytics forwarding"
+description: "Forward RampKit events to analytics on iOS"
+---
+
+## Analytics forwarding
+
+Forward events to tools like Amplitude or Segment using `forwardEvents` or in your own event callback.
+
+Segment:
+
+```swift
+RampKit.forwardEvents(to: .segment)
+```
+
+Amplitude (custom):
+
+```swift
+RampKit.onEvent { event in
+  Amplitude.instance().logEvent(event.type.rawValue, withEventProperties: event.properties)
+}
+```
+
+

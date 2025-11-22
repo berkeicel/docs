@@ -1,0 +1,20 @@
+---
+title: "Flows and screens"
+description: "iOS flows and screen presentation"
+---
+
+## Flows and screens
+
+RampKit orchestrates native iOS screens to present your configured flows. Each flow is a sequence of screens (welcome, feature highlights, paywall, success, etc.) defined in the dashboard.
+
+- Flows are resolved server‑side based on targeting rules and user attributes
+- Screens are rendered natively for performance and accessibility
+- You can start a flow at a specific screen using `startScreenId`
+
+Example:
+
+```swift
+RampKit.showOnboarding(flowId: "onboarding_v2", startScreenId: "paywall")
+```
+
+

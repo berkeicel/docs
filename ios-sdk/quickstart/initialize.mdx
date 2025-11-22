@@ -1,0 +1,63 @@
+---
+title: "Initialize"
+description: "Initialize the RampKit iOS SDK"
+---
+
+## Initialize
+
+Import the SDK and initialize it early in app launch (e.g., in `application(_:didFinishLaunchingWithOptions:)`).
+
+```swift
+import RampKit
+
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate {
+  func application(_ application: UIApplication,
+                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    RampKit.initSdk(
+      apiKey: "YOUR_API_KEY",
+      environment: .production,
+      autoShowOnboarding: false,
+      onOnboardingFinished: { payload in
+        // handle completion
+      }
+    )
+    return true
+  }
+}
+```
+
+SwiftUI App example:
+
+```swift
+import SwiftUI
+import RampKit
+
+@main
+struct MyApp: App {
+  init() {
+    RampKit.initSdk(
+      apiKey: "YOUR_API_KEY",
+      environment: .staging,
+      autoShowOnboarding: false,
+      onOnboardingFinished: { payload in
+        print("Flow finished: \(payload)")
+      }
+    )
+  }
+
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+    }
+  }
+}
+```
+
+Recommended options:
+
+- `environment`: `.production` or `.staging`
+- `autoShowOnboarding`: present automatically if a flow is available after init
+- `onOnboardingFinished`: receive completion payloads for analytics
+
+

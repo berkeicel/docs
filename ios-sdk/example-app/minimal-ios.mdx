@@ -1,0 +1,26 @@
+---
+title: "Minimal iOS Example"
+description: "Initialization and flow presentation example"
+---
+
+## Minimal iOS example
+
+```swift
+import SwiftUI
+import RampKit
+
+@main
+struct MyApp: App {
+  init() {
+    RampKit.initSdk(apiKey: "YOUR_API_KEY")
+  }
+
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+    }
+  }
+}
+```
+
+
