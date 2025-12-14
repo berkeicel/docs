@@ -1,20 +1,93 @@
 ---
-title: "Expo SDK — Developer Tools"
-description: "Local preview, live edits, debug console, and mock attributes"
+title: "Developer Tools"
+description: "Tools for development and testing"
 ---
 
-## Local Preview
+RampKit provides development tools for building and testing your onboarding.
 
-Load flows from your local editor for instant testing.
+## Development Tools
 
-## Live Edits
+<CardGroup cols={2}>
+  <Card title="Local Preview" icon="eye" href="/expo/dev-tools/local-preview">
+    Preview onboarding locally during development
+  </Card>
+  <Card title="Live Edits" icon="pen" href="/expo/dev-tools/live-edits">
+    Real-time updates without rebuilding
+  </Card>
+  <Card title="Debug Console" icon="terminal" href="/expo/dev-tools/debug-console">
+    View SDK logs and debug information
+  </Card>
+  <Card title="Mock Attributes" icon="database" href="/expo/dev-tools/mock-attributes">
+    Test with mock user and device data
+  </Card>
+</CardGroup>
 
-Push design changes live without an app update.
+## Debug Mode
 
-## Debug Console
+Enable development environment:
 
-Inspect variable changes and events in real time.
+```typescript
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  environment: "development",
+});
+```
 
-## Mock Attributes
+This enables:
+- Verbose logging with `[RampKit]` prefix
+- Additional debug information
+- Easier troubleshooting
 
-Simulate user data for QA sessions.
+## Inspect Device Context
+
+```typescript
+import { collectDeviceInfo, buildRampKitContext } from "rampkit-expo-dev";
+
+async function debugContext() {
+  const deviceInfo = await collectDeviceInfo();
+  console.log("Device Info:", JSON.stringify(deviceInfo, null, 2));
+  
+  const context = buildRampKitContext(deviceInfo);
+  console.log("Template Context:", JSON.stringify(context, null, 2));
+}
+```
+
+## Verify Onboarding Data
+
+```typescript
+const data = RampKit.getOnboardingData();
+console.log("Screens:", data?.screens?.length);
+console.log("Screen IDs:", data?.screens?.map(s => s.id));
+```
+
+## Test Native APIs
+
+```typescript
+import { Haptics, StoreReview, Notifications } from "rampkit-expo-dev";
+
+// Test haptics
+await Haptics.impactAsync("medium");
+
+// Test store review
+const available = await StoreReview.isAvailableAsync();
+console.log("Review available:", available);
+
+// Test notifications
+const status = await Notifications.getPermissionsAsync();
+console.log("Notification status:", status);
+```
+
+## Console Filtering
+
+Filter React Native logs:
+- Search: `[RampKit]`
+- Shows: Init, events, errors
+
+## Best Practices
+
+<Tip>
+- Always test on real devices for haptics and purchases
+- Use development environment during development
+- Check logs when debugging issues
+- Test with different device contexts
+</Tip>

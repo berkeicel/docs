@@ -1,12 +1,101 @@
 ---
 title: "Preview Mode"
-description: "Test unpublished flows instantly during development"
+description: "Test unpublished onboarding drafts during development"
 ---
 
-To test unpublished flows during development:
+RampKit fetches your published onboarding configuration from the CDN. During development, you can test changes before publishing.
 
-```ts
-RampKit.enablePreviewMode(true);
+## Development Environment
+
+Use the `development` environment to enable additional logging:
+
+```typescript
+RampKit.init({
+  appId: "YOUR_APP_ID",
+  environment: "development",
+});
 ```
 
-This lets you iterate quickly with your RampKit editor. When disabled, only published flows will load.
+In development mode, the SDK logs:
+
+- Initialization steps
+- Device info collection
+- Onboarding data loading
+- Event tracking
+- Variable updates
+
+## Debug Console
+
+Enable verbose logging to debug issues:
+
+```typescript
+// All RampKit logs are prefixed with [RampKit]
+// Use React Native's console filtering to show only RampKit logs
+```
+
+Example log output:
+
+```
+[RampKit] Init: Collecting device info...
+[RampKit] Init: userId rk_abc123...
+[RampKit] Init: Sending user data to backend...
+[RampKit] Init: Initializing event manager...
+[RampKit] Init: Starting transaction observer...
+[RampKit] Init: Fetching manifest from https://...
+[RampKit] Init: Using onboarding Main Onboarding flow_123
+[RampKit] Init: Onboarding loaded
+[RampKit] ShowOnboarding: context present
+[RampKit] EventManager: Event sent: onboarding_started
+```
+
+## Testing Different Onboardings
+
+Your manifest can contain multiple onboarding flows. Currently, the SDK uses the first onboarding in the list. Configure your priority in the RampKit dashboard.
+
+## Device Context Testing
+
+Test template variable resolution by checking the device context:
+
+```typescript
+import { buildRampKitContext, collectDeviceInfo } from "rampkit-expo-dev";
+
+async function debugContext() {
+  const deviceInfo = await collectDeviceInfo();
+  const context = buildRampKitContext(deviceInfo);
+  
+  console.log("Device context:", context.device);
+  console.log("User context:", context.user);
+}
+```
+
+This shows what values your templates will resolve to:
+
+```javascript
+{
+  device: {
+    platform: "iOS",
+    model: "iPhone 15 Pro",
+    locale: "en_US",
+    language: "en",
+    country: "US",
+    currencyCode: "USD",
+    currencySymbol: "$",
+    appVersion: "1.0.0",
+    buildNumber: "1",
+    interfaceStyle: "dark",
+    timezone: -25200,
+    daysSinceInstall: 3
+  },
+  user: {
+    id: "rk_abc123...",
+    isNewUser: false,
+    hasAppleSearchAdsAttribution: false,
+    sessionId: "session_xyz...",
+    installedAt: "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+<Warning>
+Always test on real devices before publishing. Simulator/emulator behavior may differ for haptics, notifications, and purchases.
+</Warning>

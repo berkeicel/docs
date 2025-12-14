@@ -1,31 +1,189 @@
 ---
 title: "RampKit.init(config)"
-description: "Initializes the SDK. Call once before any other method"
+description: "Initialize the SDK. Call once before any other method."
 ---
 
-RampKit is a lightweight singleton SDK. Once initialized, it can be accessed from anywhere in your app.
+The RampKit SDK is a singleton. Once initialized, it handles device info collection, event tracking, and onboarding management automatically.
 
-Initializes the SDK. Must be called once before any other method. Handles environment setup, analytics registration, and caching.
+## Signature
 
-```ts
-import { RampKit } from "rampkit-expo";
+```typescript
+async function init(config: RampKitConfig): Promise<void>
+```
 
-RampKit.init({
-  apiKey: "YOUR_PROJECT_KEY",
-  environment: __DEV__ ? "sandbox" : "production",
-  cacheEnabled: true,
-  logLevel: "warn",
+## Configuration
+
+```typescript
+interface RampKitConfig {
+  appId: string;
+  apiKey?: string;
+  environment?: "production" | "development";
+  autoShowOnboarding?: boolean;
+  onOnboardingFinished?: (payload?: any) => void;
+  onShowPaywall?: (payload?: any) => void;
+}
+```
+
+## Example
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+
+await RampKit.init({
+  appId: "app_abc123xyz",
+  environment: __DEV__ ? "development" : "production",
+  autoShowOnboarding: true,
+  onOnboardingFinished: (payload) => {
+    console.log("Onboarding finished with:", payload);
+    navigation.replace("Home");
+  },
+  onShowPaywall: (payload) => {
+    // Integrate with your paywall (RevenueCat, etc.)
+    showPaywall(payload?.productId);
+  },
 });
 ```
 
-**Parameters**
+## Parameters
 
-- **apiKey** — required
-- **environment** — "sandbox" or "production"
-- **cacheEnabled** — boolean (optional) — Enables client-side caching of flows
-- **logLevel** — "silent", "warn", or "debug" — Controls verbosity of logs
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `appId` | `string` | ✓ | Your RampKit app ID from the dashboard |
+| `apiKey` | `string` | | Optional API key for authentication |
+| `environment` | `string` | | `"production"` (default) or `"development"` |
+| `autoShowOnboarding` | `boolean` | | Auto-show onboarding after init (default: `false`) |
+| `onOnboardingFinished` | `function` | | Called when onboarding completes |
+| `onShowPaywall` | `function` | | Called when a paywall action is triggered |
 
-**Notes**
+## Initialization Process
 
-- Call `RampKit.init()` before rendering any screens.
-- Safe to call multiple times — the SDK ignores reinitialization.
+The SDK performs these steps during initialization:
+
+### 1. Device Info Collection
+
+Collects comprehensive device information:
+
+```typescript
+interface DeviceInfo {
+  // Identifiers
+  appUserId: string;        // Stable user ID (persisted)
+  vendorId: string | null;  // iOS vendor ID
+  appSessionId: string;     // Current session ID
+  
+  // Launch Tracking
+  installDate: string;      // ISO date of first install
+  isFirstLaunch: boolean;   // True on first app launch
+  launchCount: number;      // Total app launches
+  lastLaunchAt: string;     // Previous launch timestamp
+  
+  // App Info
+  bundleId: string;
+  appName: string;
+  appVersion: string;
+  buildNumber: string;
+  sdkVersion: string;       // RampKit SDK version
+  
+  // Platform
+  platform: "iOS" | "Android" | "iPadOS";
+  platformVersion: string;
+  platformWrapper: "Expo";
+  
+  // Device
+  deviceModel: string;      // e.g., "iPhone 15 Pro"
+  deviceName: string;
+  isSimulator: boolean;
+  
+  // Locale
+  deviceLanguageCode: string;
+  deviceLocale: string;     // e.g., "en_US"
+  regionCode: string;
+  preferredLanguages: string[];
+  
+  // Currency
+  deviceCurrencyCode: string;   // e.g., "USD"
+  deviceCurrencySymbol: string; // e.g., "$"
+  
+  // Display
+  interfaceStyle: "light" | "dark" | "unspecified";
+  screenWidth: number;
+  screenHeight: number;
+  screenScale: number;
+  
+  // System
+  timezoneIdentifier: string;
+  timezoneOffsetSeconds: number;
+  isLowPowerMode: boolean;
+  totalMemoryBytes: number;
+}
+```
+
+### 2. Backend Sync
+
+User data is sent to the RampKit backend for analytics and personalization.
+
+### 3. Event Manager Setup
+
+Initializes the event tracking system with device context.
+
+### 4. Session Tracking
+
+Tracks `app_session_started` and sets up background/foreground listeners.
+
+### 5. Transaction Observer
+
+Starts the StoreKit 2 (iOS) / Google Play Billing (Android) observer for automatic purchase tracking.
+
+### 6. Onboarding Loading
+
+Fetches your onboarding manifest and screen configurations.
+
+## Accessors
+
+After initialization, access SDK state:
+
+```typescript
+// Check if initialized
+RampKit.isInitialized(): boolean
+
+// Get user ID
+RampKit.getUserId(): string | null
+
+// Get device info
+RampKit.getDeviceInfo(): DeviceInfo | null
+
+// Get onboarding data
+RampKit.getOnboardingData(): any
+```
+
+## Cleanup
+
+Call `cleanup()` when your app terminates or user logs out:
+
+```typescript
+await RampKit.cleanup();
+```
+
+This:
+- Stops the transaction observer
+- Removes app state listeners
+- Resets the event manager
+- Clears session data
+
+<Warning>
+`init()` is async but you don't have to await it. The SDK queues operations until initialization completes. However, `showOnboarding()` requires onboarding data to be loaded first.
+</Warning>
+
+## Error Handling
+
+The SDK handles errors gracefully:
+
+```typescript
+try {
+  await RampKit.init({ appId: "YOUR_APP_ID" });
+} catch (error) {
+  // Initialization errors are logged but don't throw
+  // The SDK falls back to minimal functionality
+}
+```
+
+If device info collection fails, the SDK generates fallback values and continues.

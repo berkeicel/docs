@@ -1,10 +1,143 @@
 ---
-title: "RampKit.enableDebug(enabled)"
-description: "Enable verbose logs for development"
+title: "Debug Mode"
+description: "Enable verbose logging for development and troubleshooting"
 ---
 
-```ts
-RampKit.enableDebug(true);
+The RampKit SDK includes detailed logging for development and debugging. Enable it with the `development` environment setting.
+
+## Enable Debug Logging
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  environment: "development", // Enables verbose logging
+});
 ```
 
-Debug logs include flow loading, variable updates, and event dispatch.
+## Log Output
+
+All RampKit logs are prefixed with `[RampKit]` for easy filtering:
+
+```
+[RampKit] Init: Collecting device info...
+[RampKit] Init: userId rk_abc123-def456...
+[RampKit] Init: Sending user data to backend...
+[RampKit] Init: User data sent successfully
+[RampKit] Init: Initializing event manager...
+[RampKit] EventManager: Initialized
+[RampKit] Init: Starting transaction observer...
+[RampKit] Transaction observer started
+[RampKit] Init: Fetching manifest from https://...
+[RampKit] Init: Using onboarding Main Flow flow_123
+[RampKit] Init: onboardingId flow_123
+[RampKit] Init: Onboarding loaded
+[RampKit] Init: Finished {...}
+```
+
+## Event Tracking Logs
+
+When events are sent:
+
+```
+[RampKit] EventManager: Event sent: app_session_started
+[RampKit] EventManager: Event sent: onboarding_started
+[RampKit] EventManager: Event sent: onboarding_screen_viewed
+```
+
+## WebView Logs
+
+Onboarding overlay logs:
+
+```
+[RampKit] showRampkitOverlay called, context: present
+[RampKit] buildHtmlDocument called
+[RampKit] rampkitContext received: {"device":{"platform":"iOS"...
+[RampKit] HTML contains device/user templates
+[RampKit] Resolving templates with vars: {...}
+[RampKit] Templates were resolved in HTML
+```
+
+## Variable Sync Logs
+
+When variables are updated:
+
+```
+[Rampkit] sendVarsToWebView 0 {...}
+[Rampkit] received variables from page 1 {...}
+[Rampkit] broadcastVars {recipients: 3, excludeIndex: 1, vars: {...}}
+```
+
+## Filtering Logs
+
+In React Native Debugger or your console:
+
+```javascript
+// Filter for RampKit logs only
+console.log = ((originalLog) => {
+  return (...args) => {
+    if (args[0]?.toString().includes("[RampKit]")) {
+      originalLog.apply(console, args);
+    }
+  };
+})(console.log);
+```
+
+Or use your IDE's log filter with `[RampKit]` as the search term.
+
+## Debug Device Context
+
+Inspect what context values are being used:
+
+```typescript
+import { collectDeviceInfo, buildRampKitContext } from "rampkit-expo-dev";
+
+async function debugContext() {
+  const deviceInfo = await collectDeviceInfo();
+  console.log("Device Info:", JSON.stringify(deviceInfo, null, 2));
+  
+  const context = buildRampKitContext(deviceInfo);
+  console.log("RampKit Context:", JSON.stringify(context, null, 2));
+}
+```
+
+## Debug Onboarding Data
+
+Check what onboarding data was loaded:
+
+```typescript
+const data = RampKit.getOnboardingData();
+console.log("Onboarding Data:", JSON.stringify(data, null, 2));
+```
+
+## Production Mode
+
+For production, use the `production` environment:
+
+```typescript
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  environment: "production",
+});
+```
+
+This:
+- Reduces log verbosity
+- Uses production CDN endpoints
+- Optimizes for performance
+
+## Conditional Debug
+
+Use React Native's `__DEV__` flag:
+
+```typescript
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  environment: __DEV__ ? "development" : "production",
+});
+```
+
+<Warning>
+Avoid leaving debug mode enabled in production builds. Verbose logging can impact performance and expose sensitive information in crash logs.
+</Warning>

@@ -1,37 +1,189 @@
-title: "RampKit.loadFlow(id, options)"
-description: "Loads and displays an onboarding flow with lifecycle callbacks"
-
+---
+title: "RampKit.showOnboarding()"
+description: "Display the onboarding overlay with optional callbacks"
 ---
 
-Loads and displays a full onboarding flow inside a native WebView. Automatically handles navigation, event forwarding, and variable sync.
+Shows the onboarding overlay using your configured flow from the RampKit dashboard. The overlay renders in a native WebView with smooth animations and haptic feedback.
 
-```ts
-await RampKit.loadFlow("main_onboarding", {
-  onStart: () => console.log("Flow started"),
-  onComplete: (data) => console.log("Flow completed", data),
-  onExit: () => console.log("User exited early"),
-  appearance: {
-    backgroundColor: "#ffffff",
-    safeArea: true,
-  },
-  variables: {
-    userGoal: "improve_skin",
-    platform: "iOS",
+## Signature
+
+```typescript
+function showOnboarding(opts?: {
+  onShowPaywall?: (payload?: any) => void;
+}): void
+```
+
+## Basic Usage
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+
+// Simple call - uses callbacks from init()
+RampKit.showOnboarding();
+```
+
+## With Inline Callbacks
+
+Override or add callbacks for this specific invocation:
+
+```typescript
+RampKit.showOnboarding({
+  onShowPaywall: (payload) => {
+    // Handle paywall display
+    console.log("Paywall requested:", payload);
+    showMyPaywall(payload?.productId);
   },
 });
 ```
 
-**Parameters**
+## Prerequisites
 
-- **id** — string — Flow ID from the RampKit dashboard
-- **onStart** — function — Called when the flow is loaded
-- **onComplete** — function — Called when the user finishes
-- **onExit** — function — Called when user closes the flow
-- **variables** — object — Optional starting variable map
-- **appearance** — object — Override styling such as background color, margins
+Before calling `showOnboarding()`:
 
-**Best practices**
+1. **Initialize the SDK** — Call `RampKit.init()` first
+2. **Onboarding loaded** — The SDK must have fetched your onboarding data
 
-- Handle navigation in `onComplete` (e.g., route to home)
-- Keep variable names consistent with editor variables
-- Combine with `RampKit.setUserAttributes()` for personalization
+```typescript
+// Ensure initialization is complete
+if (RampKit.isInitialized() && RampKit.getOnboardingData()) {
+  RampKit.showOnboarding();
+}
+```
+
+## What Happens
+
+When you call `showOnboarding()`:
+
+1. **Validates data** — Checks that onboarding screens exist
+2. **Builds HTML documents** — Converts screens to optimized HTML with CSS/JS
+3. **Resolves templates** — Replaces `${device.*}` and `${user.*}` variables
+4. **Tracks analytics** — Fires `onboarding_started` event
+5. **Renders overlay** — Shows full-screen WebView in a PagerView
+6. **Preloads screens** — Warms up WebViews for smooth navigation
+
+## Closing the Onboarding
+
+To programmatically close the onboarding:
+
+```typescript
+RampKit.closeOnboarding();
+```
+
+This:
+- Triggers the close animation
+- Fires `onboarding_abandoned` event (unless completed)
+- Calls the registered close handler
+
+## Onboarding Callbacks
+
+Callbacks can be set during `init()` or passed to `showOnboarding()`:
+
+| Callback | Description |
+|----------|-------------|
+| `onOnboardingFinished` | Called when user completes all screens |
+| `onShowPaywall` | Called when a paywall action is triggered |
+
+### onOnboardingFinished
+
+```typescript
+RampKit.init({
+  appId: "YOUR_APP_ID",
+  onOnboardingFinished: (payload) => {
+    // payload contains any data passed from the onboarding
+    console.log("Completed:", payload);
+    
+    // Common patterns:
+    navigation.replace("Home");
+    setOnboardingComplete(true);
+    AsyncStorage.setItem("onboarding_complete", "true");
+  },
+});
+```
+
+### onShowPaywall
+
+```typescript
+RampKit.init({
+  appId: "YOUR_APP_ID",
+  onShowPaywall: (payload) => {
+    // Integrate with your paywall solution
+    // RevenueCat, Adapty, Superwall, etc.
+    showPaywall({
+      productId: payload?.productId,
+      placement: payload?.placement,
+    });
+  },
+});
+```
+
+## Screen Navigation
+
+The onboarding uses a PagerView for navigation. From your WebView content, you can:
+
+### Continue to Next Screen
+
+```javascript
+// From your onboarding's JavaScript
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:continue',
+  animation: 'slideFade', // 'fade', 'slide', or 'slideFade'
+}));
+
+// Or simple string message
+window.ReactNativeWebView.postMessage('continue');
+```
+
+### Navigate to Specific Screen
+
+```javascript
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:navigate',
+  targetScreenId: 'screen_pricing',
+  animation: 'fade',
+}));
+```
+
+### Go Back
+
+```javascript
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:goBack',
+  animation: 'slideFade',
+}));
+```
+
+### Close Onboarding
+
+```javascript
+window.ReactNativeWebView.postMessage('rampkit:close');
+```
+
+### Mark Complete
+
+```javascript
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:onboarding-finished',
+  payload: { selectedPlan: 'premium' },
+}));
+```
+
+## Animation Types
+
+| Animation | Description |
+|-----------|-------------|
+| `fade` | Crossfade with white curtain (default) |
+| `slide` | Native PagerView slide |
+| `slideFade` | Smooth slide + fade combination |
+
+## Auto-Events
+
+The SDK automatically tracks these events during onboarding:
+
+- `onboarding_started` — When overlay appears
+- `onboarding_screen_viewed` — Each screen change
+- `onboarding_completed` — When user finishes
+- `onboarding_abandoned` — When user closes early
+
+<Warning>
+`showOnboarding()` does nothing if called before onboarding data is loaded. Check `RampKit.getOnboardingData()` if you need to verify.
+</Warning>

@@ -1,6 +1,214 @@
 ---
 title: "Bridge Communication"
-description: "Sync state between native and web layers in real time"
+description: "WebView ↔ Native message passing and variable synchronization"
 ---
 
-RampKit uses a lightweight internal bridge to sync state between native and web layers. This means your app always has real-time access to what’s happening inside the flow.
+RampKit uses a bridge between WebView content and native code for seamless communication. This enables your onboarding screens to interact with native features and share state.
+
+## Message Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         WebView                              │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  window.ReactNativeWebView.postMessage(JSON.stringify({  │
+│  │    type: 'rampkit:variables',                           │
+│  │    vars: { selectedGoal: 'fitness' }                    │
+│  │  }));                                                   │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      RampKit SDK                             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  onMessage handler parses and routes messages:          │
+│  │  - Variables → broadcastVars()                          │
+│  │  - Navigation → navigateToIndex()                       │
+│  │  - Haptics → Haptics.impactAsync()                      │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     All WebViews                             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  webview.injectJavaScript(buildDirectVarsScript(...))   │
+│  │  → window.__rampkitVariables = newVars                  │
+│  │  → document.dispatchEvent('rampkit:vars-updated')       │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Sending Messages (WebView → Native)
+
+```javascript
+// Always use JSON for structured data
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:variables',
+  vars: {
+    selectedPlan: 'premium',
+    notificationsEnabled: true
+  }
+}));
+
+// Simple string messages for basic actions
+window.ReactNativeWebView.postMessage('continue');
+window.ReactNativeWebView.postMessage('rampkit:close');
+```
+
+## Receiving Messages (Native → WebView)
+
+The SDK injects scripts that set up listeners:
+
+```javascript
+// Variables are set directly
+window.__rampkitVariables = { selectedGoal: 'fitness' };
+
+// Events are dispatched
+document.addEventListener('rampkit:vars-updated', (event) => {
+  const vars = event.detail;
+  console.log('Variables updated:', vars);
+  updateUI(vars);
+});
+
+// Also available via window
+window.addEventListener('message', (event) => {
+  if (event.data?.type === 'rampkit:variables') {
+    const vars = event.data.vars;
+    // Handle update
+  }
+});
+
+// Global callback
+window.onRampkitVarsUpdate = function(vars) {
+  // Handle update
+};
+```
+
+## Variable Synchronization
+
+Variables are synchronized across all screens:
+
+### Setting Variables
+
+```javascript
+// From any screen
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:variables',
+  vars: {
+    selectedGoal: 'weight_loss',
+    experienceLevel: 'beginner'
+  }
+}));
+```
+
+### Reading Variables
+
+```javascript
+// Synchronous access
+const goal = window.__rampkitVariables?.selectedGoal;
+
+// Or request fresh variables
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:request-vars'
+}));
+```
+
+### Reacting to Changes
+
+```javascript
+document.addEventListener('rampkit:vars-updated', (event) => {
+  const vars = event.detail;
+  
+  // Update UI based on selections
+  if (vars.selectedPlan === 'premium') {
+    showPremiumFeatures();
+  }
+  
+  // Conditionally show elements
+  document.getElementById('trial-banner').style.display = 
+    vars.hasUsedTrial ? 'none' : 'block';
+});
+```
+
+## Stale Value Filtering
+
+The SDK prevents outdated values from overwriting current state:
+
+1. When the SDK sends variables to a screen, it records the timestamp
+2. If a screen sends back empty/default values within 600ms, they're ignored
+3. This prevents "echo" loops when screens initialize
+
+```javascript
+// This won't overwrite a non-empty host value if sent too quickly
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:variables',
+  vars: { selectedGoal: '' } // Ignored if host has a value
+}));
+```
+
+## Device Context
+
+Device and user context is available via `window.rampkitContext`:
+
+```javascript
+const ctx = window.rampkitContext;
+
+console.log(ctx.device.platform);      // "iOS"
+console.log(ctx.device.currencyCode);  // "USD"
+console.log(ctx.user.isNewUser);       // true
+console.log(ctx.user.id);              // "rk_abc123..."
+```
+
+## Notification Permission Flow
+
+```javascript
+// Request permission
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:request-notification-permission',
+  ios: {
+    allowAlert: true,
+    allowBadge: true,
+    allowSound: true
+  }
+}));
+
+// Result is stored in variables
+document.addEventListener('rampkit:vars-updated', (event) => {
+  const { notificationsPermission } = event.detail;
+  if (notificationsPermission) {
+    console.log('Granted:', notificationsPermission.granted);
+    console.log('Status:', notificationsPermission.status);
+  }
+});
+```
+
+## Paywall Integration
+
+Trigger your app's paywall:
+
+```javascript
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:show-paywall',
+  payload: {
+    productId: 'pro_monthly',
+    placement: 'onboarding'
+  }
+}));
+```
+
+Your native code handles this via `onShowPaywall`:
+
+```typescript
+RampKit.init({
+  appId: "YOUR_APP_ID",
+  onShowPaywall: async (payload) => {
+    await showRevenueCatPaywall(payload?.productId);
+  }
+});
+```
+
+<Warning>
+Always stringify JSON payloads before posting. The bridge expects string messages only.
+</Warning>

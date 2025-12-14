@@ -1,19 +1,92 @@
 ---
-title: "Load Your First Flow"
-description: "Render a live onboarding with RampKit.loadFlow(...)"
+title: "Show Your First Onboarding"
+description: "Display a live onboarding flow with RampKit.showOnboarding()"
 ---
 
-To render a live onboarding:
+After initialization, showing an onboarding flow is a single line of code:
 
-```ts
-await RampKit.loadFlow("onboarding_main", {
-  onComplete: () => {
-    navigation.replace("Home");
-  },
-  onExit: () => {
-    console.log("User exited onboarding");
+```typescript
+RampKit.showOnboarding();
+```
+
+The SDK automatically loads your onboarding configuration from the RampKit dashboard and renders it in a native WebView overlay.
+
+## Basic Usage
+
+```typescript
+import { useEffect } from "react";
+import { Button, View } from "react-native";
+import { RampKit } from "rampkit-expo-dev";
+
+export default function App() {
+  useEffect(() => {
+    RampKit.init({
+      appId: "YOUR_APP_ID",
+      onOnboardingFinished: (payload) => {
+        console.log("User completed onboarding:", payload);
+        // Navigate to main app
+      },
+    });
+  }, []);
+
+  return (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <Button 
+        title="Start Onboarding" 
+        onPress={() => RampKit.showOnboarding()} 
+      />
+    </View>
+  );
+}
+```
+
+## With Inline Callbacks
+
+You can pass callbacks directly to `showOnboarding()`:
+
+```typescript
+RampKit.showOnboarding({
+  onShowPaywall: (payload) => {
+    // Handle paywall display (e.g., RevenueCat integration)
+    console.log("Show paywall:", payload);
   },
 });
 ```
 
-You can load flows from anywhere — it’s a single line, no wrapper components required.
+## Closing the Onboarding
+
+To programmatically close the onboarding overlay:
+
+```typescript
+RampKit.closeOnboarding();
+```
+
+This triggers the abandonment tracking and gracefully dismisses the overlay.
+
+## How It Works
+
+When you call `showOnboarding()`, the SDK:
+
+1. **Builds WebView screens** — Converts your onboarding data into optimized HTML/CSS/JS
+2. **Injects device context** — Template variables like `${device.platform}` are resolved
+3. **Renders in a PagerView** — Native swipe navigation between screens
+4. **Tracks analytics** — Onboarding start, screen views, completion, and abandonment
+5. **Handles interactions** — Button taps, haptic feedback, and navigation
+6. **Syncs variables** — State is shared across all screens in real-time
+
+## Event Tracking
+
+The SDK automatically tracks these events during onboarding:
+
+| Event | Description |
+|-------|-------------|
+| `onboarding_started` | When the overlay appears |
+| `onboarding_screen_viewed` | Each screen view with index and ID |
+| `onboarding_completed` | When user finishes all screens |
+| `onboarding_abandoned` | When user closes early |
+| `notifications_prompt_shown` | When permission prompt appears |
+| `notifications_response` | User's notification permission response |
+
+<Tip>
+Use the RampKit dashboard to view analytics and A/B test different onboarding flows.
+</Tip>

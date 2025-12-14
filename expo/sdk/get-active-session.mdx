@@ -1,9 +1,115 @@
 ---
-title: "RampKit.getActiveSession()"
-description: "Returns session metadata for debugging and analytics"
+title: "Session Management"
+description: "Access session information and tracking"
 ---
 
-```ts
-const session = RampKit.getActiveSession();
-console.log(session.sessionId, session.flowId, session.timestamp);
+The RampKit SDK automatically manages sessions and provides utilities for accessing session data.
+
+## Session ID
+
+Each app launch creates a new session with a unique ID:
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+
+const deviceInfo = RampKit.getDeviceInfo();
+const sessionId = deviceInfo?.appSessionId;
+
+console.log("Current Session:", sessionId);
 ```
+
+## Session Duration
+
+Track how long the current session has been active:
+
+```typescript
+import { getSessionDurationSeconds, getSessionStartTime } from "rampkit-expo-dev";
+
+// Get session start time
+const startTime = getSessionStartTime();
+console.log("Session started at:", startTime?.toISOString());
+
+// Get duration in seconds
+const duration = getSessionDurationSeconds();
+console.log("Session duration:", duration, "seconds");
+```
+
+## Automatic Session Tracking
+
+The SDK automatically tracks these session-related events:
+
+| Event | When | Properties |
+|-------|------|------------|
+| `app_session_started` | On `init()` | `isFirstLaunch`, `launchCount` |
+| `app_backgrounded` | App goes to background | `sessionDurationSeconds` |
+| `app_foregrounded` | App comes to foreground | — |
+
+## Launch Tracking
+
+Access launch history:
+
+```typescript
+import RampKitNative from "rampkit-expo-dev";
+
+const launchData = await RampKitNative.getLaunchTrackingData();
+
+console.log("Install date:", launchData.installDate);
+console.log("First launch:", launchData.isFirstLaunch);
+console.log("Launch count:", launchData.launchCount);
+console.log("Last launch:", launchData.lastLaunchAt);
+```
+
+Or from device info:
+
+```typescript
+const deviceInfo = RampKit.getDeviceInfo();
+
+console.log("Install date:", deviceInfo?.installDate);
+console.log("First launch:", deviceInfo?.isFirstLaunch);
+console.log("Launch count:", deviceInfo?.launchCount);
+console.log("Last launch:", deviceInfo?.lastLaunchAt);
+```
+
+## Reset Session
+
+If you need to manually reset session tracking:
+
+```typescript
+import { resetSession } from "rampkit-expo-dev";
+
+// Reset session (clears sessionId and startTime)
+resetSession();
+```
+
+<Note>
+This only resets the in-memory session state. The persistent launch count and install date are not affected.
+</Note>
+
+## Session in Events
+
+All events include the session ID in their payload:
+
+```typescript
+interface RampKitEvent {
+  sessionId: string;  // Current session ID
+  // ... other fields
+}
+```
+
+This allows you to analyze user behavior within individual sessions.
+
+## Background/Foreground Handling
+
+The SDK automatically tracks app state changes:
+
+```typescript
+// When app goes to background:
+// - Fires 'app_backgrounded' with session duration
+// - Transaction observer continues (for purchase completion)
+
+// When app comes to foreground:
+// - Fires 'app_foregrounded'
+// - Session timer continues
+```
+
+This is set up automatically during `init()` and cleaned up during `cleanup()`.

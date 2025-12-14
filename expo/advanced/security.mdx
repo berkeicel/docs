@@ -1,6 +1,129 @@
 ---
 title: "Security"
-description: "Keep tokens and sensitive attributes safe in transit"
+description: "Security considerations and best practices"
 ---
 
-RampKit securely signs all flow requests with your project key. Attributes are sent via HTTPS only. Tokens are short-lived and tied to app sessions.
+RampKit is designed with security in mind. This guide covers security considerations for your integration.
+
+## Data Security
+
+### Secure User ID Storage
+
+User IDs are stored securely:
+- **iOS**: Keychain Services
+- **Android**: EncryptedSharedPreferences
+
+```typescript
+// User ID is generated and stored securely
+const userId = await getRampKitUserId();
+// Stored in: iOS Keychain / Android EncryptedSharedPreferences
+```
+
+### Data Transmission
+
+All data is transmitted over HTTPS:
+- Events sent to RampKit backend via HTTPS
+- Onboarding manifest fetched from CDN over HTTPS
+- TLS 1.2+ required
+
+## API Key Security
+
+### Keep Keys Private
+
+Never commit API keys to version control:
+
+```typescript
+// ❌ Bad: Hardcoded in code
+await RampKit.init({ appId: "app_abc123xyz" });
+
+// ✅ Better: Environment variables
+await RampKit.init({ appId: process.env.RAMPKIT_APP_ID });
+
+// ✅ Best: Expo config or secrets management
+import Constants from "expo-constants";
+await RampKit.init({ appId: Constants.expoConfig.extra.rampkitAppId });
+```
+
+### Expo Configuration
+
+```javascript
+// app.config.js
+export default {
+  extra: {
+    rampkitAppId: process.env.RAMPKIT_APP_ID,
+  },
+};
+```
+
+## WebView Security
+
+### Content Security
+
+The SDK applies hardening scripts to WebViews:
+- Disables text selection
+- Prevents zoom/pinch gestures
+- Blocks context menus
+- Prevents drag operations
+
+### Script Injection
+
+Only trusted scripts are injected:
+- Variable synchronization handlers
+- Button animation scripts
+- No external script loading (except specified in your onboarding)
+
+## Event Data
+
+### What's Collected
+
+The SDK collects and sends:
+- Device info (platform, model, locale)
+- Session data (launch count, timestamps)
+- Event data (screen views, taps, completion)
+- User ID (generated, not personal)
+
+### What's NOT Collected
+
+- Personal information (unless you include it in events)
+- Location data
+- Contact information
+- Photos or files
+
+## Best Practices
+
+<Tip>
+
+**Do:**
+- Use environment variables for app IDs
+- Enable HTTPS for any external scripts
+- Review onboarding content for sensitive data
+- Use secure paywall integrations (RevenueCat, etc.)
+
+**Don't:**
+- Include personal data in event properties
+- Hardcode API keys in source code
+- Disable WebView security features
+- Trust user input without validation
+
+</Tip>
+
+## Compliance
+
+### GDPR Considerations
+
+- User IDs are pseudonymous
+- Device info is used for personalization
+- Events can be opted out by not calling `init()`
+
+### App Store Compliance
+
+- SDK follows iOS App Store guidelines
+- No hidden data collection
+- Transparent analytics usage
+
+## Reporting Issues
+
+If you discover a security vulnerability:
+- Email: security@rampkit.com
+- Do not disclose publicly until addressed
+- We'll respond within 48 hours

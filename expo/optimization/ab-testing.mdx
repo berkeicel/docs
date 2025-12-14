@@ -1,10 +1,151 @@
 ---
 title: "A/B Testing"
-description: "Create and run split variants from the dashboard"
+description: "Run experiments on your onboarding flows with RampKit"
 ---
 
-Create multiple variants in the dashboard. RampKit automatically randomizes users and logs which variant they saw.
+RampKit supports A/B testing for onboarding flows. Test different designs, copy, and flows to optimize conversion.
 
-```ts
-RampKit.getActiveVariant("onboarding_main");
+## How It Works
+
+1. Create variants in the RampKit dashboard
+2. SDK assigns users to variants automatically
+3. Track completion and conversion events
+4. Analyze results in the dashboard
+
+## Variant Assignment
+
+Users are automatically assigned to variants based on their user ID. The assignment is:
+- **Deterministic** — Same user always sees same variant
+- **Persistent** — Survives app restarts
+- **Balanced** — Even distribution across variants
+
+## Tracking Variant Events
+
+All events include variant context:
+
+```typescript
+interface EventContext {
+  flowId: string | null;     // Onboarding flow ID
+  variantId: string | null;  // A/B test variant
+  // ...other fields
+}
 ```
+
+When tracking events manually, include the variant:
+
+```typescript
+import { eventManager } from "rampkit-expo-dev";
+
+// Events during onboarding automatically include variant
+eventManager.trackOnboardingCompleted(10, 10, "onboarding_v2");
+
+// Custom events can include context
+RampKit.trackEvent("upgrade_clicked", 
+  { buttonType: "primary" },
+  { flowId: "onboarding_v2", variantId: "variant_a" }
+);
+```
+
+## Forward to Analytics
+
+Forward variant info to your analytics provider:
+
+```typescript
+import { eventManager } from "rampkit-expo-dev";
+
+const originalTrack = eventManager.track.bind(eventManager);
+eventManager.track = async (eventName, properties, context) => {
+  await originalTrack(eventName, properties, context);
+  
+  // Include A/B test info in all events
+  myAnalytics.track(eventName, {
+    ...properties,
+    ab_test_flow: context?.flowId,
+    ab_variant: context?.variantId,
+  });
+};
+```
+
+## Analyze in Dashboard
+
+The RampKit dashboard shows:
+
+- **Variant Distribution** — How many users in each variant
+- **Completion Rate** — Percentage who finished onboarding
+- **Drop-off Points** — Where users abandoned
+- **Conversion Rate** — Post-onboarding conversions
+
+## Key Metrics
+
+Track these metrics per variant:
+
+| Metric | Description |
+|--------|-------------|
+| **Onboarding Completion** | `onboarding_completed` / `onboarding_started` |
+| **Screen Drop-off** | `onboarding_abandoned` by screen |
+| **Time to Complete** | `timeToCompleteSeconds` property |
+| **Notification Opt-in** | `notifications_response` with `granted` |
+| **Purchase Rate** | `purchase_completed` / users in variant |
+
+## External A/B Testing
+
+If you use an external A/B testing tool (Amplitude Experiment, LaunchDarkly, etc.):
+
+```typescript
+import { eventManager } from "rampkit-expo-dev";
+
+// Get variant from your A/B tool
+const variant = await amplitudeExperiment.fetch("onboarding-experiment");
+
+// Store in event context
+eventManager.setCurrentFlow("onboarding_flow", variant.key);
+
+// All subsequent events will include this context
+RampKit.showOnboarding();
+```
+
+## Best Practices
+
+<Tip>
+- **Test one thing at a time** — Isolate variables for clear results
+- **Run tests long enough** — Get statistically significant data
+- **Define success metrics upfront** — Know what you're measuring
+- **Consider segments** — Results may differ by user segment
+- **Document variants** — Record what changed between variants
+</Tip>
+
+## Statistical Significance
+
+For reliable results:
+
+- **Minimum sample size**: ~1,000 users per variant
+- **Test duration**: At least 7 days
+- **Confidence level**: 95% or higher
+
+The RampKit dashboard indicates when results are statistically significant.
+
+## Example: Testing Two Onboarding Flows
+
+**Hypothesis**: Shorter onboarding (5 screens) will have higher completion than longer (8 screens).
+
+**Setup**:
+1. Create "Short Flow" variant (5 screens)
+2. Create "Long Flow" variant (8 screens)
+3. Set 50/50 traffic split
+
+**Track**:
+```typescript
+// Both variants track same events
+eventManager.trackOnboardingCompleted(
+  screensCompleted,
+  totalScreens,
+  onboardingId
+);
+```
+
+**Analyze**:
+- Compare completion rates
+- Compare purchase rates within 7 days
+- Check notification opt-in rates
+
+**Result**: Choose winner based on primary metric (e.g., 7-day purchase rate).

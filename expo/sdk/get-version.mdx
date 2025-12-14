@@ -1,8 +1,103 @@
 ---
-title: "RampKit.getVersion()"
-description: "Returns the SDK version"
+title: "SDK Version & Constants"
+description: "Access SDK version and capability constants"
 ---
 
-```ts
-console.log("RampKit SDK version", RampKit.getVersion());
+The RampKit SDK exports version information and capability constants for debugging and feature detection.
+
+## SDK Version
+
+```typescript
+import { SDK_VERSION } from "rampkit-expo-dev";
+
+console.log("RampKit SDK Version:", SDK_VERSION);
+// Output: "1.0.0"
 ```
+
+## Capabilities
+
+Check what features the SDK supports:
+
+```typescript
+import { CAPABILITIES } from "rampkit-expo-dev";
+
+console.log("SDK Capabilities:", CAPABILITIES);
+// Output: ["onboarding", "paywall_event_receiver", "haptic_feedback", "push_notifications"]
+```
+
+| Capability | Description |
+|------------|-------------|
+| `onboarding` | Multi-screen onboarding flows |
+| `paywall_event_receiver` | Paywall trigger from WebView |
+| `haptic_feedback` | Native haptic feedback |
+| `push_notifications` | Notification permission requests |
+
+## Check Initialization
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+
+const isReady = RampKit.isInitialized();
+console.log("SDK Initialized:", isReady);
+```
+
+## Device Info Access
+
+Get collected device information:
+
+```typescript
+const deviceInfo = RampKit.getDeviceInfo();
+
+if (deviceInfo) {
+  console.log("Platform:", deviceInfo.platform);
+  console.log("SDK Version:", deviceInfo.sdkVersion);
+  console.log("App Version:", deviceInfo.appVersion);
+  console.log("Build Number:", deviceInfo.buildNumber);
+}
+```
+
+## User ID
+
+Get the stable user ID:
+
+```typescript
+const userId = RampKit.getUserId();
+console.log("User ID:", userId);
+// Output: "rk_abc123..."
+```
+
+## Debugging
+
+For development, enable verbose logging:
+
+```typescript
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  environment: "development",
+});
+```
+
+This enables console logs prefixed with `[RampKit]`:
+
+```
+[RampKit] Init: Collecting device info...
+[RampKit] Init: userId rk_abc123...
+[RampKit] Init: Initializing event manager...
+[RampKit] EventManager: Initialized
+[RampKit] Init: Finished
+```
+
+## Native Module Version
+
+Access the native module directly:
+
+```typescript
+import RampKitNative from "rampkit-expo-dev";
+
+// Check if native module is available
+if (RampKitNative) {
+  console.log("Native module loaded");
+}
+```
+
+The SDK includes fallback implementations for when the native module isn't available (e.g., in web environments).

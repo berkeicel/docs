@@ -1,17 +1,219 @@
 ---
-title: "RampKit.getVariables() / setVariable(key, value)"
-description: "Read or update runtime variables shared between SDK and WebViews"
+title: "Device Info & Context"
+description: "Access device information and context for personalization"
 ---
 
-```ts
-const vars = RampKit.getVariables();
-console.log(vars.currentStep); // e.g. "question_3"
+The RampKit SDK collects comprehensive device information that powers template variables and analytics.
 
-RampKit.setVariable("goal", "lose_weight");
+## Get Device Info
+
+After initialization, access the collected device info:
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+
+const deviceInfo = RampKit.getDeviceInfo();
+
+console.log(deviceInfo?.platform);        // "iOS"
+console.log(deviceInfo?.deviceModel);     // "iPhone 15 Pro"
+console.log(deviceInfo?.deviceLocale);    // "en_US"
+console.log(deviceInfo?.isFirstLaunch);   // true
 ```
 
-**Notes**
+## Direct Collection
 
-- Variables persist across screens within a flow
-- Changing variables in native code immediately updates the web layer
-- Use variables for conditional logic in your editor (e.g., showing different screens based on goal)
+Collect device info independently:
+
+```typescript
+import { collectDeviceInfo } from "rampkit-expo-dev";
+
+const deviceInfo = await collectDeviceInfo();
+```
+
+## DeviceInfo Type
+
+```typescript
+interface DeviceInfo {
+  // Identifiers
+  appUserId: string;           // Stable user ID
+  vendorId: string | null;     // iOS vendor ID
+  appSessionId: string;        // Current session ID
+
+  // Launch Tracking
+  installDate: string;         // ISO date of first install
+  isFirstLaunch: boolean;      // True on first app launch
+  launchCount: number;         // Total app launches
+  lastLaunchAt: string | null; // Previous launch timestamp
+
+  // App Info
+  bundleId: string | null;
+  appName: string | null;
+  appVersion: string | null;
+  buildNumber: string | null;
+  sdkVersion: string;
+
+  // Platform
+  platform: "iOS" | "Android" | "iPadOS";
+  platformVersion: string;
+  platformWrapper: "Expo" | "React Native" | null;
+
+  // Device
+  deviceModel: string;         // e.g., "iPhone 15 Pro"
+  deviceName: string;          // User's device name
+  isSimulator: boolean;
+
+  // Locale & Language
+  deviceLanguageCode: string | null;   // "en"
+  deviceLocale: string;                // "en_US"
+  regionCode: string | null;           // "US"
+  preferredLanguage: string | null;
+  preferredLanguages: string[];
+
+  // Currency
+  deviceCurrencyCode: string | null;   // "USD"
+  deviceCurrencySymbol: string | null; // "$"
+
+  // Timezone
+  timezoneIdentifier: string;          // "America/Los_Angeles"
+  timezoneOffsetSeconds: number;       // -25200
+
+  // Display
+  interfaceStyle: "light" | "dark" | "unspecified";
+  screenWidth: number;
+  screenHeight: number;
+  screenScale: number;
+
+  // Device Status
+  isLowPowerMode: boolean;
+  totalMemoryBytes: number;
+
+  // Storage (optional)
+  freeStorageBytes: number | null;
+  totalStorageBytes: number | null;
+
+  // Attribution (optional)
+  isAppleSearchAdsAttribution: boolean;
+  appleSearchAdsToken: string | null;
+
+  // Network
+  connectionType: string | null;
+
+  // SDK
+  capabilities: string[];
+  collectedAt: string;  // ISO timestamp
+}
+```
+
+## Build Context for Templates
+
+Convert device info into template-ready context:
+
+```typescript
+import { buildRampKitContext, collectDeviceInfo } from "rampkit-expo-dev";
+
+const deviceInfo = await collectDeviceInfo();
+const context = buildRampKitContext(deviceInfo);
+
+console.log(context);
+// {
+//   device: {
+//     platform: "iOS",
+//     model: "iPhone 15 Pro",
+//     locale: "en_US",
+//     language: "en",
+//     country: "US",
+//     currencyCode: "USD",
+//     currencySymbol: "$",
+//     appVersion: "1.0.0",
+//     buildNumber: "1",
+//     bundleId: "com.example.app",
+//     interfaceStyle: "dark",
+//     timezone: -25200,
+//     daysSinceInstall: 3
+//   },
+//   user: {
+//     id: "rk_abc123...",
+//     isNewUser: false,
+//     hasAppleSearchAdsAttribution: false,
+//     sessionId: "session_xyz...",
+//     installedAt: "2024-01-01T00:00:00Z"
+//   }
+// }
+```
+
+## RampKitContext Types
+
+```typescript
+interface RampKitDeviceContext {
+  platform: string;        // "iOS", "Android", "iPadOS"
+  model: string;           // "iPhone 15 Pro"
+  locale: string;          // "en_US"
+  language: string;        // "en"
+  country: string;         // "US"
+  currencyCode: string;    // "USD"
+  currencySymbol: string;  // "$"
+  appVersion: string;      // "1.0.0"
+  buildNumber: string;     // "123"
+  bundleId: string;        // "com.example.app"
+  interfaceStyle: string;  // "light" or "dark"
+  timezone: number;        // Offset in seconds
+  daysSinceInstall: number;
+}
+
+interface RampKitUserContext {
+  id: string;                         // User ID
+  isNewUser: boolean;                 // First session
+  hasAppleSearchAdsAttribution: boolean;
+  sessionId: string;
+  installedAt: string;                // ISO date
+}
+
+interface RampKitContext {
+  device: RampKitDeviceContext;
+  user: RampKitUserContext;
+}
+```
+
+## Session Tracking
+
+Access session information:
+
+```typescript
+import { getSessionStartTime, getSessionDurationSeconds } from "rampkit-expo-dev";
+
+const startTime = getSessionStartTime();
+console.log("Session started:", startTime);
+
+const duration = getSessionDurationSeconds();
+console.log("Session duration:", duration, "seconds");
+```
+
+## User ID
+
+Get the stable user ID:
+
+```typescript
+// After initialization
+const userId = RampKit.getUserId();
+
+// Or directly (always works)
+import { getRampKitUserId } from "rampkit-expo-dev";
+const userId = await getRampKitUserId();
+```
+
+The user ID is:
+- Generated on first launch
+- Stored securely in Keychain (iOS) / SharedPreferences (Android)
+- Prefixed with `rk_`
+- Persists across app updates
+
+## SDK Capabilities
+
+Check what the SDK supports:
+
+```typescript
+import { CAPABILITIES } from "rampkit-expo-dev";
+
+console.log(CAPABILITIES);
+// ["onboarding", "paywall_event_receiver", "haptic_feedback", "push_notifications"]
+```

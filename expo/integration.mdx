@@ -1,20 +1,125 @@
 ---
-title: "Expo SDK — Integration"
-description: "User attributes, targeting, navigation hooks, and offline handling"
+title: "Integration"
+description: "Integrate RampKit with your app and third-party services"
 ---
 
-## Inject User Attributes
+RampKit integrates with popular services for payments, analytics, and more.
 
-Send data like locale, campaign, or subscription status.
+## Integration Options
 
-## Dynamic Targeting
+<CardGroup cols={2}>
+  <Card title="RevenueCat" icon="credit-card" href="/expo/integration/revenuecat">
+    Handle in-app purchases with RevenueCat
+  </Card>
+  <Card title="Analytics Forwarding" icon="chart-line" href="/expo/integration/analytics-forwarding">
+    Forward events to Amplitude, Mixpanel, Firebase
+  </Card>
+  <Card title="A/B Testing" icon="flask" href="/expo/integration/ab-testing-integration">
+    Integrate with external A/B testing tools
+  </Card>
+  <Card title="Deep Linking" icon="link" href="/expo/integration/deep-linking">
+    Handle deep links in onboarding
+  </Card>
+</CardGroup>
 
-Load flows conditionally based on user state.
+## User & Targeting
 
-## Navigation Hooks
+<CardGroup cols={2}>
+  <Card title="User Attributes" icon="user" href="/expo/integration/inject-user-attributes">
+    Inject custom user attributes for personalization
+  </Card>
+  <Card title="Dynamic Targeting" icon="bullseye" href="/expo/integration/dynamic-targeting">
+    Target users based on segments and attributes
+  </Card>
+</CardGroup>
 
-Define what happens after completion or skip.
+## Lifecycle & Navigation
 
-## Offline Handling
+<CardGroup cols={2}>
+  <Card title="Navigation Hooks" icon="route" href="/expo/integration/navigation-hooks">
+    Control app navigation after onboarding
+  </Card>
+  <Card title="Lifecycle Management" icon="circle-play" href="/expo/integration/lifecycle-management">
+    Manage SDK lifecycle with your app
+  </Card>
+  <Card title="Offline Handling" icon="wifi-slash" href="/expo/integration/offline-handling">
+    Handle offline and poor network conditions
+  </Card>
+</CardGroup>
 
-Use cached flows when the network is unavailable.
+## Data & Sync
+
+<CardGroup cols={2}>
+  <Card title="Server Sync" icon="server" href="/expo/integration/server-sync">
+    Sync onboarding data with your backend
+  </Card>
+  <Card title="Web Checkout" icon="globe" href="/expo/integration/web-checkout">
+    Handle web-based checkout flows
+  </Card>
+</CardGroup>
+
+## Quick Integration Guide
+
+### 1. Basic Setup
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onOnboardingFinished: (payload) => {
+    // Navigate to main app
+    navigation.replace("Home");
+  },
+});
+```
+
+### 2. Add RevenueCat
+
+```typescript
+import Purchases from "react-native-purchases";
+
+await Purchases.configure({ apiKey: "YOUR_RC_KEY" });
+
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onShowPaywall: async (payload) => {
+    const offerings = await Purchases.getOfferings();
+    // Show your paywall UI
+  },
+});
+```
+
+### 3. Forward Analytics
+
+```typescript
+import { eventManager } from "rampkit-expo-dev";
+
+const originalTrack = eventManager.track.bind(eventManager);
+eventManager.track = async (eventName, properties, context) => {
+  await originalTrack(eventName, properties, context);
+  myAnalytics.track(eventName, properties);
+};
+```
+
+### 4. Handle Completion
+
+```typescript
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onOnboardingFinished: async (payload) => {
+    // Save user selections
+    await saveUserPreferences(payload);
+    
+    // Check subscription status
+    const customerInfo = await Purchases.getCustomerInfo();
+    
+    // Navigate appropriately
+    if (customerInfo.entitlements.active["premium"]) {
+      navigation.replace("PremiumHome");
+    } else {
+      navigation.replace("Home");
+    }
+  },
+});
+```

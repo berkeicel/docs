@@ -1,22 +1,64 @@
 ---
 title: "Install the SDK"
-description: "RampKit works with both Expo and React Native"
+description: "Add the RampKit Expo SDK to your project"
 ---
 
-RampKit works with both Expo and React Native. Install with npm or yarn:
+The RampKit Expo SDK enables you to build, test, and deploy onboarding flows with instant updates. Install it using npm or yarn:
 
-```bash
-# Expo
-npm install rampkit-expo
+<CodeGroup>
 
-# or React Native (bare)
-npm install rampkit-react-native
+```bash npm
+npx expo install rampkit-expo-dev
 ```
 
-If you’re using Expo, no additional native configuration is needed.
+```bash yarn
+yarn add rampkit-expo-dev
+```
 
-For bare React Native, run:
+</CodeGroup>
+
+## Peer Dependencies
+
+The SDK requires the following peer dependencies. Install them if not already present:
+
+```bash
+npx expo install react-native-webview react-native-pager-view react-native-root-siblings
+```
+
+## Requirements
+
+- **Expo SDK**: 49.0.0 or higher
+- **React Native**: Compatible with Expo-managed and bare workflows
+- **iOS**: 13.0+
+- **Android**: API 21+ (Android 5.0)
+
+## Native Module
+
+The RampKit SDK includes a native module that provides:
+
+- **Device info collection** — Platform, locale, timezone, screen dimensions
+- **Secure storage** — Keychain (iOS) / SharedPreferences (Android) for user IDs
+- **Haptic feedback** — Impact, notification, and selection haptics
+- **Store review** — In-app review prompts (App Store / Play Store)
+- **Notifications** — Permission requests and handling
+- **Transaction observer** — Automatic purchase tracking with StoreKit 2 / Google Play Billing
+
+For Expo managed projects, the native module is automatically linked. For bare React Native, run:
 
 ```bash
 npx pod-install
 ```
+
+## Verify Installation
+
+After installation, verify the SDK is accessible:
+
+```typescript
+import { RampKit, SDK_VERSION } from "rampkit-expo-dev";
+
+console.log("RampKit SDK Version:", SDK_VERSION);
+```
+
+<Note>
+The SDK version is currently `1.0.0`. Check the [changelog](https://github.com/getrampkit/rampkit-expo/releases) for updates.
+</Note>

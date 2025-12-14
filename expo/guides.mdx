@@ -1,20 +1,61 @@
 ---
-title: "Expo SDK — Guides"
-description: "RevenueCat, Expo setup, migrations, and version control"
+title: "Guides"
+description: "Step-by-step guides for common tasks"
 ---
 
-## RevenueCat Integration
+Comprehensive guides for setting up and integrating RampKit.
 
-Trigger purchases directly within RampKit screens.
+## Setup Guides
 
-## Expo Setup
+<CardGroup cols={2}>
+  <Card title="Expo Setup" icon="mobile" href="/expo/guides/expo-setup">
+    Complete setup guide for Expo projects
+  </Card>
+  <Card title="RevenueCat Integration" icon="credit-card" href="/expo/guides/revenuecat-integration">
+    Step-by-step RevenueCat integration
+  </Card>
+</CardGroup>
 
-Works in both managed and bare workflows.
+## Migration & Advanced
 
-## Migrating from Native Onboardings
+<CardGroup cols={2}>
+  <Card title="Migrating from Native" icon="arrow-right-arrow-left" href="/expo/guides/migrating-from-native">
+    Migrate from native onboarding implementations
+  </Card>
+  <Card title="Version Control" icon="code-branch" href="/expo/guides/version-control">
+    Managing onboarding versions and releases
+  </Card>
+</CardGroup>
 
-Replace static code-based screens with live flows.
+## Quick Setup
 
-## Version Control
+### 1. Install
 
-Safely manage releases and rollbacks for each flow.
+```bash
+npx expo install rampkit-expo-dev react-native-webview react-native-pager-view react-native-root-siblings
+```
+
+### 2. Initialize
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onOnboardingFinished: () => {
+    navigation.replace("Home");
+  },
+});
+```
+
+### 3. Show Onboarding
+
+```typescript
+RampKit.showOnboarding();
+```
+
+## Need Help?
+
+- [Common Errors](/expo/troubleshooting/common-errors)
+- [Debug Tips](/expo/troubleshooting/debug-tips)
+- [GitHub Issues](https://github.com/getrampkit/rampkit-expo/issues)

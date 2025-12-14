@@ -1,11 +1,153 @@
 ---
-title: "Expo SDK — Reference"
-description: "RampKit API for Expo"
+title: "SDK Reference"
+description: "Complete API reference for the RampKit Expo SDK"
 ---
 
-- `RampKit.init(config)` — Initialize once at app startup.
-- `RampKit.loadFlow(id, options)` — Fetch and render a flow.
-- `RampKit.setUserAttributes(data)` — Pass app data into flows.
-- `RampKit.getVariables()` / `setVariable(key, value)` — Manage flow variables.
-- `RampKit.on(event, callback)` / `off(event)` — Subscribe to flow events.
-- `RampKit.reset()` — Clear variables and cached sessions.
+The RampKit SDK provides a comprehensive API for onboarding, analytics, and native features.
+
+## Main SDK
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+```
+
+### Core Methods
+
+| Method | Description |
+|--------|-------------|
+| `init(config)` | Initialize the SDK |
+| `showOnboarding(opts?)` | Display the onboarding overlay |
+| `closeOnboarding()` | Dismiss the onboarding overlay |
+| `cleanup()` | Release SDK resources |
+
+### State Accessors
+
+| Method | Returns |
+|--------|---------|
+| `isInitialized()` | `boolean` |
+| `getUserId()` | `string \| null` |
+| `getDeviceInfo()` | `DeviceInfo \| null` |
+| `getOnboardingData()` | `any` |
+
+### Event Tracking
+
+| Method | Description |
+|--------|-------------|
+| `trackEvent(name, properties, context?)` | Track custom event |
+| `trackScreenView(screenName, referrer?)` | Track screen view |
+| `trackCtaTap(buttonId, buttonText?)` | Track button tap |
+
+<CardGroup cols={2}>
+  <Card title="init()" icon="play" href="/expo/sdk/init">
+    Initialize the SDK with configuration
+  </Card>
+  <Card title="showOnboarding()" icon="window-restore" href="/expo/sdk/load-flow">
+    Display the onboarding overlay
+  </Card>
+  <Card title="Event Tracking" icon="chart-simple" href="/expo/sdk/events">
+    Track analytics events
+  </Card>
+  <Card title="cleanup()" icon="broom" href="/expo/sdk/reset">
+    Release SDK resources
+  </Card>
+</CardGroup>
+
+## Native APIs
+
+```typescript
+import { Haptics, StoreReview, Notifications } from "rampkit-expo-dev";
+```
+
+### Haptics
+
+| Method | Description |
+|--------|-------------|
+| `impactAsync(style)` | Trigger impact haptic |
+| `notificationAsync(type)` | Trigger notification haptic |
+| `selectionAsync()` | Trigger selection haptic |
+
+### Store Review
+
+| Method | Description |
+|--------|-------------|
+| `requestReview()` | Request in-app review |
+| `isAvailableAsync()` | Check if review is available |
+| `hasAction()` | Check if action is supported |
+
+### Notifications
+
+| Method | Description |
+|--------|-------------|
+| `requestPermissionsAsync(opts?)` | Request notification permissions |
+| `getPermissionsAsync()` | Get current permission status |
+
+<Card title="Native APIs" icon="mobile" href="/expo/sdk/set-user-attributes">
+  Full documentation for Haptics, StoreReview, and Notifications
+</Card>
+
+## Utilities
+
+```typescript
+import { 
+  getRampKitUserId,
+  collectDeviceInfo,
+  buildRampKitContext,
+  eventManager 
+} from "rampkit-expo-dev";
+```
+
+| Function | Description |
+|----------|-------------|
+| `getRampKitUserId()` | Get stable user ID |
+| `collectDeviceInfo()` | Collect device information |
+| `buildRampKitContext(deviceInfo)` | Build template context |
+| `getSessionDurationSeconds()` | Get current session duration |
+
+<Card title="Device Info" icon="mobile-screen" href="/expo/sdk/variables">
+  Device info collection and context building
+</Card>
+
+## Constants
+
+```typescript
+import { SDK_VERSION, CAPABILITIES } from "rampkit-expo-dev";
+```
+
+| Constant | Value |
+|----------|-------|
+| `SDK_VERSION` | `"1.0.0"` |
+| `CAPABILITIES` | `["onboarding", "paywall_event_receiver", "haptic_feedback", "push_notifications"]` |
+
+<Card title="Version & Constants" icon="info" href="/expo/sdk/get-version">
+  SDK version and capability constants
+</Card>
+
+## Types
+
+```typescript
+import type {
+  RampKitConfig,
+  DeviceInfo,
+  RampKitEvent,
+  RampKitContext,
+  RampKitDeviceContext,
+  RampKitUserContext,
+} from "rampkit-expo-dev";
+```
+
+See [init()](/expo/sdk/init) for `RampKitConfig` and [Device Info](/expo/sdk/variables) for type definitions.
+
+## Complete API
+
+<CardGroup cols={3}>
+  <Card title="init()" href="/expo/sdk/init" />
+  <Card title="showOnboarding()" href="/expo/sdk/load-flow" />
+  <Card title="Events" href="/expo/sdk/events" />
+  <Card title="Native APIs" href="/expo/sdk/set-user-attributes" />
+  <Card title="Device Info" href="/expo/sdk/variables" />
+  <Card title="cleanup()" href="/expo/sdk/reset" />
+  <Card title="Debug Mode" href="/expo/sdk/enable-debug" />
+  <Card title="Sessions" href="/expo/sdk/get-active-session" />
+  <Card title="Forwarding" href="/expo/sdk/forward-events" />
+  <Card title="Version" href="/expo/sdk/get-version" />
+</CardGroup>

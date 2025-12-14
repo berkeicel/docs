@@ -1,20 +1,141 @@
 ---
-title: "Expo SDK — Core Concepts"
-description: "Flows, screens, variables, events, and bridge communication"
+title: "Core Concepts"
+description: "Fundamental concepts for understanding RampKit"
 ---
 
-## Flows & Screens
+Understanding these core concepts will help you get the most out of RampKit.
 
-Each onboarding is built from screens designed in the web editor.
+## Architecture Overview
 
-## Variables & State
+RampKit renders onboardings in a native overlay using WebViews:
 
-Manage shared data across screens and sync with your app.
+```
+┌─────────────────────────────────────────┐
+│               Your App                   │
+│  ┌───────────────────────────────────┐  │
+│  │         RampKit Overlay           │  │
+│  │  ┌─────────────────────────────┐  │  │
+│  │  │       PagerView             │  │  │
+│  │  │  ┌─────────┐ ┌─────────┐   │  │  │
+│  │  │  │ WebView │ │ WebView │   │  │  │
+│  │  │  │ Screen 1│ │ Screen 2│   │  │  │
+│  │  │  └─────────┘ └─────────┘   │  │  │
+│  │  └─────────────────────────────┘  │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+```
 
-## Actions & Events
+## Key Concepts
 
-Define what happens on taps, inputs, or conditions.
+<CardGroup cols={2}>
+  <Card title="Flows & Screens" icon="window-restore" href="/expo/core/flows-and-screens">
+    Onboardings are flows containing multiple screens, each rendered as HTML/CSS/JS in a WebView
+  </Card>
+  <Card title="Variables & State" icon="code" href="/expo/core/variables-and-state">
+    Shared state across screens with template variables for personalization
+  </Card>
+  <Card title="Actions & Events" icon="bolt" href="/expo/core/actions-and-events">
+    WebView interactions trigger native actions and analytics events
+  </Card>
+  <Card title="Bridge Communication" icon="arrows-left-right" href="/expo/core/bridge-communication">
+    Bidirectional messaging between WebView content and native code
+  </Card>
+</CardGroup>
 
-## Bridge Communication
+## The RampKit Singleton
 
-The system that keeps your app and web layers in perfect sync.
+RampKit uses a singleton pattern for global access:
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+
+// Initialize once
+await RampKit.init({ appId: "YOUR_APP_ID" });
+
+// Use anywhere
+RampKit.showOnboarding();
+RampKit.trackEvent("custom_event");
+RampKit.getUserId();
+```
+
+## Lifecycle
+
+```
+1. Init        → Collect device info, register user, load onboarding
+2. Show        → Render overlay with WebViews
+3. Navigate    → User progresses through screens
+4. Interact    → Button taps, variable updates, haptics
+5. Complete    → Fire callback, dismiss overlay
+6. Cleanup     → Release resources (optional)
+```
+
+## Device & User Context
+
+The SDK collects rich context for personalization:
+
+```typescript
+interface RampKitContext {
+  device: {
+    platform: "iOS" | "Android" | "iPadOS";
+    model: "iPhone 15 Pro";
+    locale: "en_US";
+    currencyCode: "USD";
+    // ...more
+  };
+  user: {
+    id: "rk_abc123";
+    isNewUser: true;
+    sessionId: "session_xyz";
+    // ...more
+  };
+}
+```
+
+## Template Resolution
+
+HTML content can include dynamic values:
+
+```html
+<!-- Before resolution -->
+<p>Welcome${user.isNewUser ? "" : " back"}, ${device.platform} user!</p>
+
+<!-- After resolution (new iOS user) -->
+<p>Welcome, iOS user!</p>
+```
+
+## Event Tracking
+
+All user interactions are tracked:
+
+- **Automatic** — Session, screen views, onboarding lifecycle
+- **Manual** — Custom events via `trackEvent()`, `trackScreenView()`, `trackCtaTap()`
+
+## Native Features
+
+The SDK exposes native capabilities:
+
+| Feature | API |
+|---------|-----|
+| Haptic Feedback | `Haptics.impactAsync()` |
+| Store Review | `StoreReview.requestReview()` |
+| Notifications | `Notifications.requestPermissionsAsync()` |
+| Purchases | `TransactionObserver` (automatic) |
+
+## Next Steps
+
+Dive deeper into each concept:
+
+<Steps>
+  <Step title="Flows & Screens">
+    Learn how onboardings are structured and rendered
+  </Step>
+  <Step title="Variables & State">
+    Understand personalization and state sharing
+  </Step>
+  <Step title="Actions & Events">
+    Explore user interactions and analytics
+  </Step>
+  <Step title="Bridge Communication">
+    Master WebView-native messaging
+  </Step>
+</Steps>

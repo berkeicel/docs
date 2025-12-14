@@ -1,14 +1,342 @@
 ---
-title: "RevenueCat Integration"
-description: "Trigger purchases directly within RampKit screens"
+title: "RevenueCat Integration Guide"
+description: "Step-by-step guide to integrating RevenueCat with RampKit onboarding"
 ---
 
-Trigger purchases directly from RampKit buttons using your RevenueCat SDK.
+This guide covers the complete integration of RevenueCat with RampKit for handling in-app purchases during onboarding.
 
-```ts
-RampKit.on("purchase_triggered", async (data) => {
-  await Purchases.purchasePackage(data.package);
+## Overview
+
+The integration flow:
+1. User completes onboarding screens
+2. Onboarding triggers paywall action
+3. RampKit calls your `onShowPaywall` handler
+4. Your app shows RevenueCat paywall/offerings
+5. Purchase completes → user continues to app
+
+## Step 1: Install RevenueCat
+
+```bash
+npx expo install react-native-purchases
+```
+
+## Step 2: Configure RevenueCat
+
+In your app entry point:
+
+```typescript
+import Purchases from "react-native-purchases";
+
+// Before RampKit.init()
+await Purchases.configure({
+  apiKey: Platform.select({
+    ios: "YOUR_REVENUECAT_IOS_KEY",
+    android: "YOUR_REVENUECAT_ANDROID_KEY",
+  }),
+  // Optional: set user ID for cross-platform sync
+  appUserID: userId,
 });
 ```
 
-RampKit can also sync post-purchase events to update the flow in real time.
+## Step 3: Initialize RampKit with Paywall Handler
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+import Purchases from "react-native-purchases";
+
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onShowPaywall: async (payload) => {
+    // payload may contain: productId, placement, metadata
+    await handlePaywall(payload);
+  },
+  onOnboardingFinished: (payload) => {
+    // Check subscription status and navigate
+    checkAndNavigate();
+  },
+});
+```
+
+## Step 4: Implement Paywall Handler
+
+### Option A: Direct Purchase
+
+Purchase a specific product:
+
+```typescript
+async function handlePaywall(payload?: { productId?: string }) {
+  try {
+    const offerings = await Purchases.getOfferings();
+    
+    if (!offerings.current) {
+      console.log("No offerings available");
+      return;
+    }
+
+    // Find the requested package
+    const packages = offerings.current.availablePackages;
+    const targetPackage = payload?.productId
+      ? packages.find(p => p.product.identifier === payload.productId)
+      : packages[0]; // Default to first package
+
+    if (!targetPackage) {
+      console.log("Package not found:", payload?.productId);
+      return;
+    }
+
+    // Make purchase
+    const { customerInfo } = await Purchases.purchasePackage(targetPackage);
+    
+    // Check entitlements
+    if (customerInfo.entitlements.active["premium"]) {
+      console.log("User is now premium!");
+    }
+
+  } catch (error) {
+    if (error.userCancelled) {
+      console.log("User cancelled purchase");
+    } else {
+      console.error("Purchase error:", error);
+    }
+  }
+}
+```
+
+### Option B: Show Paywall UI
+
+Show your own paywall component:
+
+```typescript
+const [showPaywall, setShowPaywall] = useState(false);
+const [offerings, setOfferings] = useState(null);
+
+async function handlePaywall(payload) {
+  const offerings = await Purchases.getOfferings();
+  if (offerings.current) {
+    setOfferings(offerings.current);
+    setShowPaywall(true);
+  }
+}
+
+// In your render
+{showPaywall && (
+  <PaywallModal
+    offerings={offerings}
+    onPurchase={handlePurchase}
+    onClose={() => setShowPaywall(false)}
+  />
+)}
+```
+
+### Option C: Use RevenueCat Paywalls
+
+If using RevenueCat's paywall feature:
+
+```typescript
+import { presentPaywall } from "react-native-purchases-ui";
+
+async function handlePaywall(payload) {
+  const result = await presentPaywall();
+  
+  if (result === PAYWALL_RESULT.PURCHASED) {
+    console.log("Purchase successful!");
+  } else if (result === PAYWALL_RESULT.RESTORED) {
+    console.log("Purchases restored!");
+  } else {
+    console.log("Paywall dismissed");
+  }
+}
+```
+
+## Step 5: Track Events
+
+Track paywall and purchase events for analytics:
+
+```typescript
+import { eventManager } from "rampkit-expo-dev";
+
+async function handlePaywall(payload) {
+  // Track paywall shown
+  eventManager.trackPaywallShown(
+    "revenuecat_paywall",
+    payload?.placement,
+    offerings.current.availablePackages.map(p => ({
+      productId: p.product.identifier,
+      price: p.product.price,
+      currency: p.product.currencyCode,
+    }))
+  );
+
+  // ... show paywall UI ...
+}
+
+async function handlePurchase(pkg) {
+  eventManager.trackPaywallPrimaryActionTap(
+    "revenuecat_paywall",
+    pkg.product.identifier
+  );
+
+  try {
+    await Purchases.purchasePackage(pkg);
+    eventManager.trackPaywallClosed("revenuecat_paywall", "purchased");
+  } catch (error) {
+    if (error.userCancelled) {
+      eventManager.trackPaywallClosed("revenuecat_paywall", "dismissed");
+    }
+  }
+}
+```
+
+## Step 6: Trigger from Onboarding
+
+In your onboarding screen's HTML/JavaScript:
+
+```html
+<button onclick="handleUpgrade()">Upgrade to Premium</button>
+
+<script>
+function handleUpgrade() {
+  // Trigger haptic
+  window.ReactNativeWebView.postMessage(JSON.stringify({
+    type: 'rampkit:haptic',
+    action: 'haptic',
+    hapticType: 'impact',
+    impactStyle: 'Medium'
+  }));
+
+  // Trigger paywall
+  window.ReactNativeWebView.postMessage(JSON.stringify({
+    type: 'rampkit:show-paywall',
+    payload: {
+      productId: 'pro_monthly',
+      placement: 'onboarding_step_4'
+    }
+  }));
+}
+</script>
+```
+
+## Complete Example
+
+```typescript
+import { useEffect, useState } from "react";
+import { View, Modal, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { RampKit, eventManager } from "rampkit-expo-dev";
+import Purchases, { PurchasesOffering, PurchasesPackage } from "react-native-purchases";
+
+export default function App() {
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [currentOffering, setCurrentOffering] = useState<PurchasesOffering | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
+
+  useEffect(() => {
+    async function init() {
+      // Configure RevenueCat
+      await Purchases.configure({
+        apiKey: "YOUR_REVENUECAT_KEY",
+      });
+
+      // Check existing subscription
+      const customerInfo = await Purchases.getCustomerInfo();
+      setIsPremium(!!customerInfo.entitlements.active["premium"]);
+
+      // Configure RampKit
+      await RampKit.init({
+        appId: "YOUR_APP_ID",
+        autoShowOnboarding: !isPremium, // Skip if already premium
+        onShowPaywall: async (payload) => {
+          const offerings = await Purchases.getOfferings();
+          if (offerings.current) {
+            setCurrentOffering(offerings.current);
+            setShowPaywall(true);
+            
+            eventManager.trackPaywallShown(
+              "main_paywall",
+              payload?.placement,
+              offerings.current.availablePackages.map(p => ({
+                productId: p.product.identifier,
+                price: p.product.price,
+                currency: p.product.currencyCode,
+              }))
+            );
+          }
+        },
+        onOnboardingFinished: () => {
+          // Navigate to main app
+        },
+      });
+    }
+
+    init();
+  }, []);
+
+  const handlePurchase = async (pkg: PurchasesPackage) => {
+    eventManager.trackPaywallPrimaryActionTap("main_paywall", pkg.product.identifier);
+
+    try {
+      const { customerInfo } = await Purchases.purchasePackage(pkg);
+      
+      if (customerInfo.entitlements.active["premium"]) {
+        setIsPremium(true);
+        setShowPaywall(false);
+        eventManager.trackPaywallClosed("main_paywall", "purchased");
+      }
+    } catch (error) {
+      if (error.userCancelled) {
+        eventManager.trackPaywallClosed("main_paywall", "dismissed");
+      }
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Your app content */}
+      
+      <Modal visible={showPaywall} animationType="slide">
+        <View style={styles.paywall}>
+          <Text style={styles.title}>Upgrade to Premium</Text>
+          
+          {currentOffering?.availablePackages.map((pkg) => (
+            <TouchableOpacity
+              key={pkg.identifier}
+              style={styles.package}
+              onPress={() => handlePurchase(pkg)}
+            >
+              <Text>{pkg.product.title}</Text>
+              <Text>{pkg.product.priceString}</Text>
+            </TouchableOpacity>
+          ))}
+          
+          <TouchableOpacity
+            style={styles.close}
+            onPress={() => {
+              setShowPaywall(false);
+              eventManager.trackPaywallClosed("main_paywall", "dismissed");
+            }}
+          >
+            <Text>Maybe Later</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  paywall: { flex: 1, padding: 20, justifyContent: "center" },
+  title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
+  package: { padding: 20, backgroundColor: "#f0f0f0", borderRadius: 10, marginBottom: 10 },
+  close: { padding: 20, alignItems: "center" },
+});
+```
+
+## Best Practices
+
+<Tip>
+- Initialize RevenueCat **before** RampKit
+- Use `placement` to identify paywall trigger locations
+- Track all paywall events for conversion analysis
+- Handle subscription restoration for returning users
+- Test with sandbox accounts during development
+</Tip>

@@ -1,21 +1,221 @@
 ---
 title: "RevenueCat Integration"
-description: "Trigger purchases directly via RevenueCat from flows"
+description: "Integrate RevenueCat for in-app purchases within RampKit onboarding"
 ---
 
-```ts
-import { Purchases } from "react-native-purchases";
-import { RampKit } from "rampkit-expo";
+RampKit integrates seamlessly with RevenueCat for handling purchases triggered from onboarding flows.
 
-RampKit.on("purchase_request", async (payload) => {
+## Setup
+
+Install RevenueCat:
+
+```bash
+npx expo install react-native-purchases
+```
+
+## Initialize Both SDKs
+
+```typescript
+import { useEffect } from "react";
+import { RampKit } from "rampkit-expo-dev";
+import Purchases from "react-native-purchases";
+
+export default function App() {
+  useEffect(() => {
+    async function init() {
+      // Initialize RevenueCat first
+      await Purchases.configure({
+        apiKey: "YOUR_REVENUECAT_PUBLIC_KEY",
+      });
+
+      // Then initialize RampKit with paywall handler
+      await RampKit.init({
+        appId: "YOUR_APP_ID",
+        onShowPaywall: async (payload) => {
+          await handlePaywall(payload);
+        },
+        onOnboardingFinished: (payload) => {
+          // Navigate to main app
+          navigation.replace("Home");
+        },
+      });
+    }
+
+    init();
+  }, []);
+
+  // ...
+}
+```
+
+## Handle Paywall Trigger
+
+When your onboarding triggers a paywall action:
+
+```typescript
+async function handlePaywall(payload?: { productId?: string; placement?: string }) {
   try {
-    const pkg = await Purchases.getPackage(payload.packageId);
-    const result = await Purchases.purchasePackage(pkg);
-    RampKit.setVariable("purchase_status", "success");
-  } catch (e) {
-    RampKit.setVariable("purchase_status", "failed");
+    // Get offerings from RevenueCat
+    const offerings = await Purchases.getOfferings();
+    
+    if (offerings.current) {
+      // Option 1: Use specific product from payload
+      if (payload?.productId) {
+        const pkg = offerings.current.availablePackages.find(
+          p => p.product.identifier === payload.productId
+        );
+        if (pkg) {
+          const result = await Purchases.purchasePackage(pkg);
+          console.log("Purchase successful:", result.customerInfo);
+        }
+      }
+      // Option 2: Show offerings UI
+      else {
+        showPaywallUI(offerings.current);
+      }
+    }
+  } catch (error) {
+    if (error.userCancelled) {
+      console.log("User cancelled purchase");
+    } else {
+      console.error("Purchase error:", error);
+    }
+  }
+}
+```
+
+## Trigger Paywall from Onboarding
+
+In your onboarding screen's JavaScript:
+
+```javascript
+function handleUpgradeClick() {
+  // Trigger paywall with specific product
+  window.ReactNativeWebView.postMessage(JSON.stringify({
+    type: 'rampkit:show-paywall',
+    payload: {
+      productId: 'pro_monthly',
+      placement: 'onboarding_step_3'
+    }
+  }));
+}
+
+function handlePremiumClick() {
+  // Trigger paywall for current offering
+  window.ReactNativeWebView.postMessage(JSON.stringify({
+    type: 'rampkit:show-paywall',
+    payload: {
+      placement: 'onboarding_paywall'
+    }
+  }));
+}
+```
+
+## Track Purchase Events
+
+RampKit's Transaction Observer automatically tracks purchases. For additional RevenueCat-specific tracking:
+
+```typescript
+import { eventManager } from "rampkit-expo-dev";
+import Purchases from "react-native-purchases";
+
+// Set up RevenueCat listener
+Purchases.addCustomerInfoUpdateListener((customerInfo) => {
+  // Track subscription status changes
+  const activeSubscriptions = customerInfo.activeSubscriptions;
+  
+  if (activeSubscriptions.length > 0) {
+    eventManager.track("subscription_active", {
+      productIds: activeSubscriptions,
+      source: "revenuecat"
+    });
   }
 });
 ```
 
-Use RampKit’s editor to set buttons with action `purchase_request` and pass `packageId`.
+## Complete Integration Example
+
+```typescript
+import { useEffect, useState } from "react";
+import { View, Text, ActivityIndicator } from "react-native";
+import { RampKit, eventManager } from "rampkit-expo-dev";
+import Purchases, { PurchasesPackage } from "react-native-purchases";
+
+export default function App() {
+  const [loading, setLoading] = useState(true);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [currentPackages, setCurrentPackages] = useState<PurchasesPackage[]>([]);
+
+  useEffect(() => {
+    async function init() {
+      // 1. Configure RevenueCat
+      await Purchases.configure({
+        apiKey: "YOUR_REVENUECAT_KEY",
+      });
+
+      // 2. Initialize RampKit
+      await RampKit.init({
+        appId: "YOUR_APP_ID",
+        autoShowOnboarding: true,
+        onShowPaywall: async (payload) => {
+          // Track paywall request
+          eventManager.trackPaywallShown(
+            "revenuecat_paywall",
+            payload?.placement
+          );
+
+          // Get offerings
+          const offerings = await Purchases.getOfferings();
+          if (offerings.current) {
+            setCurrentPackages(offerings.current.availablePackages);
+            setShowPaywall(true);
+          }
+        },
+        onOnboardingFinished: () => {
+          // Check if user subscribed during onboarding
+          checkSubscriptionStatus();
+        },
+      });
+
+      setLoading(false);
+    }
+
+    init();
+  }, []);
+
+  async function handlePurchase(pkg: PurchasesPackage) {
+    try {
+      eventManager.trackPaywallPrimaryActionTap(
+        "revenuecat_paywall",
+        pkg.product.identifier
+      );
+
+      const result = await Purchases.purchasePackage(pkg);
+      
+      eventManager.trackPaywallClosed("revenuecat_paywall", "purchased");
+      setShowPaywall(false);
+
+      // Navigate to success state
+    } catch (error) {
+      if (error.userCancelled) {
+        eventManager.trackPaywallClosed("revenuecat_paywall", "dismissed");
+      }
+    }
+  }
+
+  // ... render paywall UI
+}
+```
+
+## Best Practices
+
+<Tip>
+- Initialize RevenueCat **before** RampKit
+- Track paywall events for A/B testing analysis
+- Handle errors gracefully in the paywall handler
+- Use `placement` to identify where paywalls are triggered
+</Tip>
+
+<Warning>
+The Transaction Observer tracks purchases at the StoreKit/Play Billing level. If you need RevenueCat-specific events (like entitlement grants), add listeners directly to RevenueCat.
+</Warning>

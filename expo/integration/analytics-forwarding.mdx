@@ -1,13 +1,243 @@
 ---
 title: "Analytics Forwarding"
-description: "Forward events to Mixpanel, Firebase, Amplitude, or Segment"
+description: "Forward RampKit events to your analytics provider"
 ---
 
-```ts
-RampKit.forwardEventsTo("firebase", {
-  mapEvents: {
-    flow_complete: "onboarding_completed",
-    screen_view: "onboarding_step",
-  },
-});
+RampKit automatically sends events to the RampKit backend. You can also forward these events to your own analytics stack.
+
+## Overview
+
+Events are tracked via the `eventManager`. You can intercept and forward them to:
+- Amplitude
+- Mixpanel
+- Firebase Analytics
+- Segment
+- PostHog
+- Custom analytics
+
+## Basic Forwarding
+
+Wrap the event manager's track method:
+
+```typescript
+import { eventManager } from "rampkit-expo-dev";
+
+// Store original method
+const originalTrack = eventManager.track.bind(eventManager);
+
+// Override with forwarding
+eventManager.track = async (eventName, properties, context) => {
+  // Send to RampKit backend (original behavior)
+  await originalTrack(eventName, properties, context);
+  
+  // Forward to your analytics
+  myAnalytics.track(eventName, {
+    ...properties,
+    rampkit_flow_id: context?.flowId,
+    rampkit_variant_id: context?.variantId,
+    rampkit_screen: context?.screenName,
+  });
+};
 ```
+
+## Amplitude
+
+```typescript
+import { eventManager } from "rampkit-expo-dev";
+import * as Amplitude from "@amplitude/analytics-react-native";
+
+// Initialize Amplitude
+Amplitude.init("YOUR_AMPLITUDE_KEY");
+
+// Set up forwarding
+const originalTrack = eventManager.track.bind(eventManager);
+eventManager.track = async (eventName, properties, context) => {
+  await originalTrack(eventName, properties, context);
+  
+  Amplitude.track(eventName, {
+    ...properties,
+    flow_id: context?.flowId,
+    variant_id: context?.variantId,
+    screen_name: context?.screenName,
+    placement: context?.placement,
+  });
+};
+
+// Also identify user
+const userId = RampKit.getUserId();
+if (userId) {
+  Amplitude.setUserId(userId);
+}
+```
+
+## Mixpanel
+
+```typescript
+import { eventManager, RampKit } from "rampkit-expo-dev";
+import { Mixpanel } from "mixpanel-react-native";
+
+const mixpanel = new Mixpanel("YOUR_MIXPANEL_TOKEN", true);
+mixpanel.init();
+
+// Identify user
+const userId = RampKit.getUserId();
+if (userId) {
+  mixpanel.identify(userId);
+}
+
+// Set up forwarding
+const originalTrack = eventManager.track.bind(eventManager);
+eventManager.track = async (eventName, properties, context) => {
+  await originalTrack(eventName, properties, context);
+  
+  mixpanel.track(eventName, {
+    ...properties,
+    $flow_id: context?.flowId,
+    $variant_id: context?.variantId,
+    $screen_name: context?.screenName,
+  });
+};
+```
+
+## Firebase Analytics
+
+```typescript
+import { eventManager } from "rampkit-expo-dev";
+import analytics from "@react-native-firebase/analytics";
+
+const originalTrack = eventManager.track.bind(eventManager);
+eventManager.track = async (eventName, properties, context) => {
+  await originalTrack(eventName, properties, context);
+  
+  // Firebase event names: alphanumeric + underscore, max 40 chars
+  const firebaseEventName = eventName
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .slice(0, 40);
+  
+  await analytics().logEvent(firebaseEventName, {
+    ...properties,
+    flow_id: context?.flowId,
+    variant_id: context?.variantId,
+  });
+};
+```
+
+## Segment
+
+```typescript
+import { eventManager, RampKit } from "rampkit-expo-dev";
+import { createClient } from "@segment/analytics-react-native";
+
+const segment = createClient({
+  writeKey: "YOUR_SEGMENT_WRITE_KEY",
+});
+
+// Identify
+const userId = RampKit.getUserId();
+const deviceInfo = RampKit.getDeviceInfo();
+if (userId && deviceInfo) {
+  segment.identify(userId, {
+    platform: deviceInfo.platform,
+    device_model: deviceInfo.deviceModel,
+    app_version: deviceInfo.appVersion,
+    locale: deviceInfo.deviceLocale,
+  });
+}
+
+// Forward events
+const originalTrack = eventManager.track.bind(eventManager);
+eventManager.track = async (eventName, properties, context) => {
+  await originalTrack(eventName, properties, context);
+  
+  segment.track(eventName, {
+    ...properties,
+    context: {
+      flow_id: context?.flowId,
+      variant_id: context?.variantId,
+      screen_name: context?.screenName,
+    },
+  });
+};
+```
+
+## Selective Forwarding
+
+Forward only specific events:
+
+```typescript
+const importantEvents = [
+  "onboarding_started",
+  "onboarding_completed",
+  "onboarding_abandoned",
+  "purchase_completed",
+  "notifications_response",
+];
+
+eventManager.track = async (eventName, properties, context) => {
+  await originalTrack(eventName, properties, context);
+  
+  if (importantEvents.includes(eventName)) {
+    myAnalytics.track(eventName, properties);
+  }
+};
+```
+
+## Event Enrichment
+
+Add additional context to events:
+
+```typescript
+eventManager.track = async (eventName, properties, context) => {
+  const deviceInfo = RampKit.getDeviceInfo();
+  
+  const enrichedProperties = {
+    ...properties,
+    // Add device info
+    platform: deviceInfo?.platform,
+    device_model: deviceInfo?.deviceModel,
+    app_version: deviceInfo?.appVersion,
+    // Add custom context
+    experiment_group: getExperimentGroup(),
+    user_segment: getUserSegment(),
+    // Add timestamp
+    client_timestamp: new Date().toISOString(),
+  };
+  
+  await originalTrack(eventName, enrichedProperties, context);
+  myAnalytics.track(eventName, enrichedProperties);
+};
+```
+
+## A/B Test Analysis
+
+For analyzing onboarding variants:
+
+```typescript
+eventManager.track = async (eventName, properties, context) => {
+  await originalTrack(eventName, properties, context);
+  
+  // Include variant info for A/B analysis
+  if (context?.variantId) {
+    myAnalytics.track(eventName, {
+      ...properties,
+      ab_test_id: context.flowId,
+      variant_id: context.variantId,
+      variant_name: getVariantName(context.variantId),
+    });
+  }
+};
+```
+
+## Best Practices
+
+<Tip>
+- Set up forwarding **after** `RampKit.init()` completes
+- Include `flowId` and `variantId` for A/B test analysis
+- Use consistent property naming across analytics providers
+- Consider batching for high-volume events
+- Test forwarding in development before production
+</Tip>
+
+<Warning>
+Avoid calling multiple analytics SDKs synchronously on every event—this can impact performance. Consider using a queue or fire-and-forget pattern.
+</Warning>

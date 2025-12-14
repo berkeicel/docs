@@ -1,20 +1,104 @@
 ---
-title: "Expo SDK — Optimization"
-description: "A/B testing, analytics, forecasts, and event forwarding"
+title: "Optimization"
+description: "Optimize your onboarding for better conversion"
 ---
 
-## A/B Testing
+Use RampKit's analytics and A/B testing to continuously improve your onboarding.
 
-Create and run split variants from the dashboard.
+## Optimization Tools
 
-## Conversion Analytics
+<CardGroup cols={2}>
+  <Card title="A/B Testing" icon="flask" href="/expo/optimization/ab-testing">
+    Test different onboarding variants
+  </Card>
+  <Card title="Conversion Analytics" icon="chart-line" href="/expo/optimization/conversion-analytics">
+    Track funnel metrics and conversion rates
+  </Card>
+  <Card title="AI Forecasts" icon="robot" href="/expo/optimization/ai-forecasts">
+    Predictive analytics for optimization
+  </Card>
+  <Card title="Event Forwarding" icon="share" href="/expo/optimization/event-forwarding">
+    Forward events to your analytics stack
+  </Card>
+</CardGroup>
 
-Track user progress, drop-offs, and completions.
+## Key Metrics
 
-## AI Forecasts
+Track these metrics to measure success:
 
-Get projected performance metrics before publishing.
+| Metric | Calculation |
+|--------|-------------|
+| **Completion Rate** | Completed / Started |
+| **Drop-off Rate** | Abandoned by screen |
+| **Time to Complete** | Average seconds |
+| **Notification Opt-in** | Granted / Prompted |
+| **Trial Start Rate** | Trials / Completed |
+| **Purchase Rate** | Purchases / Completed |
 
-## Event Forwarding
+## Quick Wins
 
-Send RampKit analytics to Mixpanel, Amplitude, or Firebase.
+### 1. Track Everything
+
+```typescript
+import { RampKit, eventManager } from "rampkit-expo-dev";
+
+// Custom conversion events
+RampKit.trackEvent("trial_started", { plan: "premium" });
+RampKit.trackEvent("feature_activated", { feature: "dark_mode" });
+```
+
+### 2. Forward to Analytics
+
+```typescript
+const originalTrack = eventManager.track.bind(eventManager);
+eventManager.track = async (eventName, props, ctx) => {
+  await originalTrack(eventName, props, ctx);
+  amplitude.track(eventName, { ...props, variant: ctx?.variantId });
+};
+```
+
+### 3. Run A/B Tests
+
+Create variants in the dashboard and track:
+
+```typescript
+// Variant info is automatically included in events
+// Dashboard shows conversion per variant
+```
+
+### 4. Analyze Drop-offs
+
+```typescript
+// onboarding_abandoned includes:
+{
+  lastScreenName: "screen_pricing",
+  reason: "dismissed",
+  timeSpentSeconds: 45
+}
+```
+
+## Optimization Checklist
+
+<Steps>
+  <Step title="Baseline Metrics">
+    Measure current completion and conversion rates
+  </Step>
+  <Step title="Identify Drop-offs">
+    Find screens with highest abandonment
+  </Step>
+  <Step title="Form Hypothesis">
+    "Shorter flow will increase completion"
+  </Step>
+  <Step title="Create Variant">
+    Build test version in dashboard
+  </Step>
+  <Step title="Run Test">
+    Let it run for statistical significance
+  </Step>
+  <Step title="Analyze Results">
+    Compare primary metric (e.g., purchase rate)
+  </Step>
+  <Step title="Deploy Winner">
+    Roll out the better variant
+  </Step>
+</Steps>

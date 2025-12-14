@@ -1,11 +1,143 @@
 ---
 title: "Custom Variable Injection"
-description: "Pre-define variables before the flow loads"
+description: "Inject custom variables into onboarding templates"
 ---
 
-```ts
-RampKit.preloadVariables({
-  plan: "pro_trial",
-  startedFrom: "deeplink",
-});
+Extend RampKit's template system with custom variables for advanced personalization.
+
+## Default Variables
+
+RampKit automatically provides device and user context:
+
+```html
+${device.platform}      <!-- "iOS" -->
+${device.currencyCode}  <!-- "USD" -->
+${user.isNewUser}       <!-- true/false -->
+${user.id}              <!-- "rk_abc123..." -->
 ```
+
+## Custom Variables via Onboarding State
+
+Define custom variables in your onboarding configuration:
+
+```typescript
+// Your onboarding data includes:
+{
+  variables: {
+    state: [
+      { name: "selectedGoal", initialValue: "" },
+      { name: "experienceLevel", initialValue: "beginner" },
+      { name: "hasTrial", initialValue: false }
+    ]
+  }
+}
+```
+
+These are available in templates:
+
+```html
+<p>Your goal: ${selectedGoal}</p>
+<p>Level: ${experienceLevel}</p>
+```
+
+## Inject from App Code
+
+Update variables programmatically via the WebView bridge:
+
+```typescript
+// From your onboarding screen's JavaScript:
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:variables',
+  vars: {
+    userSegment: 'premium_target',
+    experimentGroup: 'A',
+    referralCode: 'FRIEND20'
+  }
+}));
+```
+
+These sync across all screens immediately.
+
+## Pre-population
+
+Set initial values before showing onboarding:
+
+```typescript
+// Currently, initial values are set in your onboarding configuration
+// via the RampKit dashboard or manifest
+```
+
+## Server-Side Variables
+
+For dynamic values from your backend:
+
+```typescript
+// 1. Fetch from your server before init
+const userConfig = await fetchUserConfig();
+
+// 2. Store for use in onboarding
+await AsyncStorage.setItem('user_config', JSON.stringify(userConfig));
+
+// 3. In onboarding screens, the page's JavaScript can:
+//    - Request config via a custom message
+//    - Or use window.__rampkitVariables if you set them
+```
+
+## Conditional Logic
+
+Use variables in template conditionals:
+
+```html
+<!-- Show different content based on custom vars -->
+<div>${experimentGroup == "A" ? "Try our new feature!" : "Classic experience"}</div>
+
+<!-- Combine with device context -->
+<p>${device.platform == "iOS" && userSegment == "premium_target" ? 
+    "Exclusive iOS offer!" : "Great offer for you!"}</p>
+```
+
+## Complex Objects
+
+Variables support complex types:
+
+```javascript
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:variables',
+  vars: {
+    userPreferences: {
+      theme: 'dark',
+      notifications: true,
+      goals: ['fitness', 'nutrition']
+    }
+  }
+}));
+```
+
+Access in templates:
+
+```html
+<p>Theme: ${userPreferences.theme}</p>
+```
+
+Or in JavaScript:
+
+```javascript
+const prefs = window.__rampkitVariables?.userPreferences;
+if (prefs?.goals?.includes('fitness')) {
+  showFitnessContent();
+}
+```
+
+## Best Practices
+
+<Tip>
+- Use clear, consistent naming conventions
+- Keep variable names short but descriptive
+- Document your custom variables
+- Initialize with sensible defaults
+- Validate values before using in conditionals
+</Tip>
+
+<Warning>
+Template resolution happens before WebView load. For dynamic updates after load, use the variable sync system (`rampkit:variables` messages) instead of templates.
+</Warning>

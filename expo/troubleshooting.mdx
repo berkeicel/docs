@@ -1,12 +1,80 @@
 ---
-title: "Expo SDK — Troubleshooting"
-description: "Common errors and debug tips for Expo integration"
+title: "Troubleshooting"
+description: "Solutions for common issues and debugging tips"
 ---
 
-## Common Errors
+Find solutions to common RampKit issues and learn debugging techniques.
 
-Fix frequent setup or rendering issues fast.
+## Troubleshooting Guides
 
-## Debug Tips
+<CardGroup cols={2}>
+  <Card title="Common Errors" icon="circle-exclamation" href="/expo/troubleshooting/common-errors">
+    Solutions for frequently encountered issues
+  </Card>
+  <Card title="Debug Tips" icon="bug" href="/expo/troubleshooting/debug-tips">
+    Techniques for debugging RampKit integrations
+  </Card>
+</CardGroup>
 
-Best practices for inspecting network and bridge issues.
+## Quick Fixes
+
+### Onboarding Not Showing
+
+```typescript
+// 1. Check initialization
+console.log("Initialized:", RampKit.isInitialized());
+console.log("Data loaded:", !!RampKit.getOnboardingData());
+
+// 2. Ensure init completed before showing
+await RampKit.init({ appId: "YOUR_APP_ID" });
+RampKit.showOnboarding();
+```
+
+### Events Not Tracking
+
+```typescript
+// Enable debug mode
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  environment: "development",
+});
+
+// Check logs for [RampKit] EventManager: Event sent:
+```
+
+### Variables Not Syncing
+
+```javascript
+// In WebView, use correct format:
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:variables',
+  vars: { key: 'value' }
+}));
+```
+
+### Native Module Error
+
+```bash
+# Reinstall native dependencies
+npx expo prebuild --clean
+npx pod-install
+```
+
+## Debug Mode
+
+Enable verbose logging:
+
+```typescript
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  environment: "development",
+});
+```
+
+Filter logs with `[RampKit]` prefix.
+
+## Get Help
+
+- **Documentation**: [rampkit.com/docs](https://rampkit.com/docs)
+- **GitHub Issues**: [github.com/getrampkit/rampkit-expo/issues](https://github.com/getrampkit/rampkit-expo/issues)
+- **Email Support**: hello@rampkit.com

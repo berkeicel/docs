@@ -1,19 +1,220 @@
 ---
 title: "Actions & Events"
-description: "Define what happens on taps, inputs, or conditions"
+description: "WebView-to-native communication and event handling"
 ---
 
-Every button, toggle, or input in your flow can:
+RampKit screens communicate with the native app via a bridge. Actions are sent from WebView to native, and events are tracked automatically.
 
-- set variables
-- navigate to another screen
-- trigger an SDK event
-- or complete the flow
+## Bridge Communication
 
-You can also listen for these events in your app:
+Use `window.ReactNativeWebView.postMessage()` to send messages from your screen's JavaScript:
 
-```ts
-RampKit.on("flow_complete", (data) => {
-  console.log("Flow finished:", data);
-});
+```javascript
+// Simple string message
+window.ReactNativeWebView.postMessage('continue');
+
+// JSON payload
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:navigate',
+  targetScreenId: 'screen_2',
+  animation: 'fade'
+}));
 ```
+
+## Supported Actions
+
+### Navigation
+
+```javascript
+// Continue to next screen
+{ type: 'rampkit:continue', animation: 'fade' | 'slide' | 'slideFade' }
+
+// Navigate to specific screen
+{ type: 'rampkit:navigate', targetScreenId: 'screen_id', animation: '...' }
+
+// Go back
+{ type: 'rampkit:goBack', animation: '...' }
+
+// Close onboarding
+{ type: 'rampkit:close' }
+
+// Complete onboarding
+{ type: 'rampkit:onboarding-finished', payload: { ... } }
+```
+
+### Variables
+
+```javascript
+// Update shared variables
+{
+  type: 'rampkit:variables',
+  vars: {
+    selectedGoal: 'weight_loss',
+    selectedPlan: 'premium'
+  }
+}
+
+// Request current variables
+{ type: 'rampkit:request-vars' }
+```
+
+### Haptics
+
+```javascript
+// Trigger haptic feedback
+{
+  type: 'rampkit:haptic',
+  action: 'haptic',
+  hapticType: 'impact' | 'notification' | 'selection',
+  impactStyle: 'Light' | 'Medium' | 'Heavy' | 'Rigid' | 'Soft',
+  notificationType: 'Success' | 'Warning' | 'Error'
+}
+```
+
+### System Actions
+
+```javascript
+// Request store review
+{ type: 'rampkit:request-review' }
+
+// Request notification permissions
+{
+  type: 'rampkit:request-notification-permission',
+  ios: { allowAlert: true, allowBadge: true, allowSound: true },
+  android: { channelId: 'default', importance: 'MAX' }
+}
+
+// Show paywall
+{ type: 'rampkit:show-paywall', payload: { productId: 'pro_monthly' } }
+```
+
+## Automatic Events
+
+The SDK tracks these events automatically:
+
+### App Lifecycle
+| Event | Trigger |
+|-------|---------|
+| `app_session_started` | On `init()` |
+| `app_backgrounded` | App goes to background |
+| `app_foregrounded` | App comes to foreground |
+
+### Onboarding
+| Event | Trigger |
+|-------|---------|
+| `onboarding_started` | `showOnboarding()` called |
+| `onboarding_screen_viewed` | Each screen shown |
+| `onboarding_completed` | User finishes all screens |
+| `onboarding_abandoned` | User closes early |
+
+### Notifications
+| Event | Trigger |
+|-------|---------|
+| `notifications_prompt_shown` | Permission dialog shown |
+| `notifications_response` | User responds to permission |
+
+### Purchases
+| Event | Trigger |
+|-------|---------|
+| `purchase_started` | Purchase initiated |
+| `purchase_completed` | Purchase successful |
+| `purchase_failed` | Purchase failed |
+
+## Custom Events
+
+Track custom events from your app:
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+
+// Track custom action
+RampKit.trackEvent("feature_discovered", {
+  featureName: "dark_mode",
+  screen: "settings"
+});
+
+// Track screen view
+RampKit.trackScreenView("profile");
+
+// Track button tap
+RampKit.trackCtaTap("upgrade_button", "Upgrade Now");
+```
+
+## Event Structure
+
+All events follow this format:
+
+```typescript
+interface RampKitEvent {
+  appId: string;
+  appUserId: string;
+  eventId: string;
+  eventName: string;
+  sessionId: string;
+  occurredAt: string;
+  device: {
+    platform: string;
+    platformVersion: string;
+    deviceModel: string;
+    sdkVersion: string;
+    appVersion: string | null;
+    buildNumber: string | null;
+  };
+  context: {
+    screenName: string | null;
+    flowId: string | null;
+    variantId: string | null;
+    paywallId: string | null;
+    locale: string | null;
+    regionCode: string | null;
+    placement: string | null;
+  };
+  properties: Record<string, any>;
+}
+```
+
+## Button Animation
+
+The SDK automatically adds tap animations to interactive elements:
+
+```javascript
+// Elements that get automatic tap feedback:
+// - <button> elements
+// - <a> elements
+// - Elements with onclick handlers
+// - Elements with role="button"
+// - Elements with cursor: pointer
+// - Elements with classes containing 'btn', 'button', 'cta'
+```
+
+Animation is 80ms press + 280ms spring-back release.
+
+## Haptic on Button Tap
+
+Add haptic feedback to button taps:
+
+```html
+<button onclick="handleTap()">Continue</button>
+
+<script>
+function handleTap() {
+  // Trigger haptic
+  window.ReactNativeWebView.postMessage(JSON.stringify({
+    type: 'rampkit:haptic',
+    action: 'haptic',
+    hapticType: 'impact',
+    impactStyle: 'Medium'
+  }));
+  
+  // Then navigate
+  window.ReactNativeWebView.postMessage(JSON.stringify({
+    type: 'rampkit:continue',
+    animation: 'slideFade'
+  }));
+}
+</script>
+```
+
+<Tip>
+The SDK includes haptic feedback for navigation by default. Add explicit haptics for important user actions like selections and confirmations.
+</Tip>
