@@ -3,11 +3,9 @@ title: "Runtime Overrides"
 description: "Override SDK behavior at runtime"
 ---
 
-Advanced techniques for customizing RampKit behavior at runtime.
+Advanced techniques for customizing RampKit behavior.
 
 ## Configuration Overrides
-
-### showOnboarding Options
 
 Override callbacks for specific invocations:
 
@@ -24,155 +22,58 @@ RampKit.showOnboarding({
 });
 ```
 
-## Event Manager Customization
+## Event Interception
 
-### Override Event Tracking
+Override event tracking:
 
 ```typescript
 import { eventManager } from "rampkit-expo-dev";
 
-// Store original
 const originalTrack = eventManager.track.bind(eventManager);
 
-// Override
 eventManager.track = async (eventName, properties, context) => {
   // Add custom logic
   const enrichedProperties = {
     ...properties,
     customTimestamp: Date.now(),
-    environment: __DEV__ ? 'development' : 'production',
   };
-
-  // Optionally skip certain events
-  if (eventName === 'screen_view' && properties.screenName === 'loading') {
-    return; // Skip this event
-  }
 
   // Call original
   await originalTrack(eventName, enrichedProperties, context);
-};
-```
-
-### Intercept Specific Events
-
-```typescript
-// Only intercept completion events
-const originalComplete = eventManager.trackOnboardingCompleted.bind(eventManager);
-
-eventManager.trackOnboardingCompleted = (completedSteps, totalSteps, onboardingId) => {
-  // Custom logic before tracking
-  console.log(`User completed ${completedSteps}/${totalSteps} steps`);
   
-  // Additional tracking
-  externalAnalytics.track('funnel_complete', {
-    steps: completedSteps,
-    total: totalSteps,
-  });
-
-  // Call original
-  originalComplete(completedSteps, totalSteps, onboardingId);
+  // Forward to your analytics
+  myAnalytics.track(eventName, enrichedProperties);
 };
-```
-
-## Native Module Access
-
-### Direct Native Calls
-
-```typescript
-import RampKitNative from "rampkit-expo-dev";
-
-// Custom storage
-await RampKitNative.setStoredValue('custom_key', 'custom_value');
-const value = await RampKitNative.getStoredValue('custom_key');
-
-// Get raw device info
-const rawInfo = await RampKitNative.getDeviceInfo();
-
-// Get launch data
-const launchData = await RampKitNative.getLaunchTrackingData();
-```
-
-## Custom Context Builder
-
-Override context generation:
-
-```typescript
-import { collectDeviceInfo, buildRampKitContext } from "rampkit-expo-dev";
-
-async function getCustomContext() {
-  const deviceInfo = await collectDeviceInfo();
-  const baseContext = buildRampKitContext(deviceInfo);
-
-  // Add custom fields
-  return {
-    device: {
-      ...baseContext.device,
-      customField: 'value',
-    },
-    user: {
-      ...baseContext.user,
-      segment: await getUserSegment(),
-      experiments: await getActiveExperiments(),
-    },
-  };
-}
 ```
 
 ## Conditional Initialization
 
 ```typescript
-// Choose configuration based on conditions
 const config = await determineConfig();
 
 await RampKit.init({
   appId: config.appId,
   environment: config.environment,
   autoShowOnboarding: config.shouldAutoShow,
-  onOnboardingFinished: config.completionHandler,
 });
 ```
 
-## Feature Flags
+## Error Handling
 
 ```typescript
-// Use feature flags to control behavior
-const features = await fetchFeatureFlags();
-
-await RampKit.init({
-  appId: "YOUR_APP_ID",
-  autoShowOnboarding: features.showOnboarding,
-});
-
-// Conditional event tracking
-if (features.trackDetailedEvents) {
-  RampKit.trackEvent('detailed_interaction', { ... });
-}
-```
-
-## Error Handling Override
-
-```typescript
-// Wrap SDK calls with custom error handling
 async function safeShowOnboarding() {
   try {
     if (!RampKit.isInitialized()) {
-      console.warn('RampKit not initialized, attempting init...');
       await RampKit.init({ appId: "YOUR_APP_ID" });
     }
-    
-    if (RampKit.getOnboardingData()) {
-      RampKit.showOnboarding();
-    } else {
-      console.warn('No onboarding data, using fallback');
-      showFallbackOnboarding();
-    }
+    RampKit.showOnboarding();
   } catch (error) {
-    Sentry.captureException(error);
+    console.error("RampKit error:", error);
     showFallbackOnboarding();
   }
 }
 ```
 
 <Warning>
-Runtime overrides can affect SDK behavior significantly. Test thoroughly and consider edge cases. Keep overrides minimal and well-documented.
+Runtime overrides can affect SDK behavior significantly. Test thoroughly.
 </Warning>

@@ -3,93 +3,49 @@ title: "Expo Setup Guide"
 description: "Complete setup guide for RampKit with Expo"
 ---
 
-This guide walks you through setting up RampKit in an Expo project from scratch.
+Step-by-step guide for setting up RampKit in an Expo project.
 
 ## Prerequisites
 
-- Expo SDK 49.0.0 or higher
+- Expo SDK 49.0.0+
 - Node.js 18+
-- Expo CLI installed: `npm install -g expo-cli`
 
-## Step 1: Create Expo Project
-
-If you don't have an existing project:
-
-```bash
-npx create-expo-app my-rampkit-app
-cd my-rampkit-app
-```
-
-## Step 2: Install RampKit
+## Step 1: Install RampKit
 
 ```bash
 npx expo install rampkit-expo-dev
 ```
 
-## Step 3: Install Peer Dependencies
+## Step 2: Install Peer Dependencies
 
 ```bash
 npx expo install react-native-webview react-native-pager-view react-native-root-siblings
 ```
 
-## Step 4: Configure App.tsx
+## Step 3: Configure App.tsx
 
 ```typescript
 import { useEffect, useState } from "react";
-import { View, Text, Button, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, Button, StyleSheet } from "react-native";
 import { RampKit } from "rampkit-expo-dev";
 
 export default function App() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    async function initializeRampKit() {
-      try {
-        await RampKit.init({
-          appId: "YOUR_APP_ID", // Get this from RampKit dashboard
-          environment: __DEV__ ? "development" : "production",
-          autoShowOnboarding: false,
-          onOnboardingFinished: (payload) => {
-            console.log("Onboarding complete:", payload);
-            // Navigate to main app
-          },
-          onShowPaywall: (payload) => {
-            console.log("Paywall triggered:", payload);
-            // Integrate with RevenueCat/Adapty/etc.
-          },
-        });
-        
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
+    async function init() {
+      await RampKit.init({
+        appId: "YOUR_APP_ID",
+        onOnboardingFinished: () => {
+          // Navigate to main app
+        },
+      });
+      setReady(true);
     }
-
-    initializeRampKit();
-
-    return () => {
-      RampKit.cleanup();
-    };
+    init();
+    
+    return () => RampKit.cleanup();
   }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" />
-        <Text style={styles.text}>Initializing RampKit...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.error}>Error: {error}</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -97,164 +53,30 @@ export default function App() {
       <Button
         title="Start Onboarding"
         onPress={() => RampKit.showOnboarding()}
+        disabled={!ready}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  text: {
-    marginTop: 10,
-    fontSize: 16,
-  },
-  error: {
-    color: "red",
-    fontSize: 16,
-  },
+  container: { flex: 1, justifyContent: "center", alignItems: "center" },
+  title: { fontSize: 24, marginBottom: 20 },
 });
 ```
 
-## Step 5: Get Your App ID
+## Step 4: Get Your App ID
 
 1. Go to [RampKit Dashboard](https://rampkit.com)
-2. Create a new project or select existing
-3. Go to **Settings → App Configuration**
-4. Copy your **App ID**
-5. Replace `"YOUR_APP_ID"` in your code
+2. Go to **Settings → App Configuration**
+3. Copy your **App ID**
 
-## Step 6: Create Your First Onboarding
-
-1. In the RampKit dashboard, go to **Onboardings**
-2. Click **Create New Onboarding**
-3. Use the visual editor to design your screens
-4. Click **Publish** when ready
-
-## Step 7: Test on Device
+## Step 5: Test
 
 ```bash
-# Start Expo development server
 npx expo start
-
-# Press 'i' for iOS simulator
-# Press 'a' for Android emulator
-# Or scan QR code with Expo Go app
 ```
 
-## Step 8: Build for Production
-
-For iOS:
-
-```bash
-npx expo run:ios --configuration Release
-```
-
-For Android:
-
-```bash
-npx expo run:android --variant release
-```
-
-Or use EAS Build:
-
-```bash
-npx eas build --platform all
-```
-
-## Project Structure
-
-```
-my-rampkit-app/
-├── App.tsx              # RampKit initialization
-├── app.json             # Expo configuration
-├── package.json
-├── tsconfig.json
-└── src/
-    ├── screens/
-    │   └── Home.tsx     # Your main app screens
-    └── services/
-        └── payments.ts  # RevenueCat integration
-```
-
-## Common Configuration
-
-### Auto-Show Onboarding
-
-Show onboarding automatically on first launch:
-
-```typescript
-await RampKit.init({
-  appId: "YOUR_APP_ID",
-  autoShowOnboarding: true,
-});
-```
-
-### Conditional Onboarding
-
-Show onboarding only for new users:
-
-```typescript
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-useEffect(() => {
-  async function checkAndShowOnboarding() {
-    const hasSeenOnboarding = await AsyncStorage.getItem("onboarding_complete");
-    
-    await RampKit.init({
-      appId: "YOUR_APP_ID",
-      onOnboardingFinished: async () => {
-        await AsyncStorage.setItem("onboarding_complete", "true");
-        navigation.replace("Home");
-      },
-    });
-
-    if (!hasSeenOnboarding) {
-      RampKit.showOnboarding();
-    }
-  }
-
-  checkAndShowOnboarding();
-}, []);
-```
-
-### TypeScript Configuration
-
-The SDK includes TypeScript definitions. Your `tsconfig.json` should include:
-
-```json
-{
-  "compilerOptions": {
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "moduleResolution": "bundler"
-  }
-}
-```
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="RevenueCat Integration" icon="credit-card" href="/expo/integration/revenuecat">
-    Add in-app purchases
-  </Card>
-  <Card title="Event Tracking" icon="chart-simple" href="/expo/sdk/events">
-    Track custom analytics
-  </Card>
-  <Card title="Template Variables" icon="code" href="/expo/core/variables-and-state">
-    Personalize content
-  </Card>
-  <Card title="Debug Mode" icon="bug" href="/expo/sdk/enable-debug">
-    Enable verbose logging
-  </Card>
-</CardGroup>
+<Tip>
+Replace `YOUR_APP_ID` with your actual app ID from the dashboard.
+</Tip>

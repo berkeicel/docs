@@ -3,28 +3,22 @@ title: "Expo SDK"
 description: "Build, test, and deploy personalized onboarding experiences with instant updates"
 ---
 
-The RampKit Expo SDK enables you to create, edit, and deploy onboarding flows from the web—no app releases required. Design your onboarding in the RampKit dashboard, and the SDK handles rendering, analytics, and personalization.
+The RampKit Expo SDK enables you to create, edit, and deploy onboarding flows from the web—no app releases required.
 
 ## Features
 
 <CardGroup cols={2}>
   <Card title="Visual Web Builder" icon="paintbrush">
-    Design onboardings in the RampKit dashboard with our drag-and-drop editor
+    Design onboardings in the RampKit dashboard
   </Card>
   <Card title="Instant Updates" icon="bolt">
-    Push changes to production without app store releases
+    Push changes without app store releases
   </Card>
   <Card title="A/B Testing" icon="flask">
-    Test different flows and measure conversion rates
+    Test different flows and measure conversion
   </Card>
   <Card title="Personalization" icon="user">
-    Show different content based on device, locale, and user attributes
-  </Card>
-  <Card title="Analytics & Insights" icon="chart-line">
-    Track onboarding completion, drop-off points, and conversions
-  </Card>
-  <Card title="Native Performance" icon="gauge-high">
-    WebView-based rendering with native haptics and animations
+    Show content based on device, locale, and user
   </Card>
 </CardGroup>
 
@@ -55,18 +49,6 @@ The RampKit Expo SDK enables you to create, edit, and deploy onboarding flows fr
   </Step>
 </Steps>
 
-## SDK Capabilities
-
-| Capability | Description |
-|------------|-------------|
-| **Onboarding** | Multi-screen flows with native navigation |
-| **Haptic Feedback** | Impact, notification, and selection haptics |
-| **Push Notifications** | Permission prompts and handling |
-| **Store Review** | In-app review prompts |
-| **Transaction Observer** | Automatic purchase tracking |
-| **Event Tracking** | Comprehensive analytics |
-| **Template Variables** | Personalized content based on device/user |
-
 ## Main API
 
 ```typescript
@@ -87,7 +69,7 @@ RampKit.getDeviceInfo();
 // Track events
 RampKit.trackEvent("custom_action", { key: "value" });
 RampKit.trackScreenView("screen_name");
-RampKit.trackCtaTap("button_id", "Button Text");
+RampKit.trackCtaTap("button_id");
 
 // Cleanup
 await RampKit.cleanup();
@@ -95,47 +77,18 @@ await RampKit.cleanup();
 
 ## Native APIs
 
-The SDK exposes native APIs that replace common Expo packages:
-
 ```typescript
 import { Haptics, StoreReview, Notifications } from "rampkit-expo-dev";
 
-// Haptics (replaces expo-haptics)
+// Haptics
 await Haptics.impactAsync("medium");
 await Haptics.notificationAsync("success");
-await Haptics.selectionAsync();
 
-// Store Review (replaces expo-store-review)
+// Store Review
 await StoreReview.requestReview();
-const available = await StoreReview.isAvailableAsync();
 
-// Notifications (replaces expo-notifications)
+// Notifications
 const result = await Notifications.requestPermissionsAsync();
-const status = await Notifications.getPermissionsAsync();
-```
-
-## Exports
-
-```typescript
-// Main SDK
-export { RampKit };
-export { getRampKitUserId };
-export { eventManager };
-
-// Device info utilities
-export { collectDeviceInfo, buildRampKitContext };
-
-// Native APIs
-export { Haptics, StoreReview, Notifications, TransactionObserver };
-
-// Native module
-export { default as RampKitNative };
-
-// Constants
-export { SDK_VERSION, CAPABILITIES };
-
-// Types
-export type { DeviceInfo, RampKitConfig, RampKitEvent, RampKitContext };
 ```
 
 ## Platform Support
@@ -143,22 +96,22 @@ export type { DeviceInfo, RampKitConfig, RampKitEvent, RampKitContext };
 | Platform | Minimum Version |
 |----------|-----------------|
 | iOS | 13.0+ |
-| Android | API 21+ (Android 5.0) |
+| Android | API 21+ |
 | Expo SDK | 49.0.0+ |
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Installation" icon="download" href="/expo/quickstart/install">
-    Set up the SDK in your project
+    Set up the SDK
   </Card>
   <Card title="Initialization" icon="play" href="/expo/quickstart/initialize">
-    Configure and initialize RampKit
+    Configure RampKit
   </Card>
   <Card title="Show Onboarding" icon="window-restore" href="/expo/quickstart/load-first-flow">
-    Display your first onboarding flow
+    Display your first flow
   </Card>
   <Card title="Event Tracking" icon="chart-simple" href="/expo/sdk/events">
-    Track custom analytics events
+    Track analytics
   </Card>
 </CardGroup>

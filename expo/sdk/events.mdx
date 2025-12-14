@@ -3,47 +3,45 @@ title: "Event Tracking"
 description: "Track analytics events with the RampKit SDK"
 ---
 
-RampKit includes a comprehensive event tracking system. Events are automatically sent to the RampKit backend for analytics and can be forwarded to your own analytics provider.
+RampKit includes comprehensive event tracking. Events are sent to the RampKit backend and can be forwarded to your analytics provider.
 
 ## Automatic Events
 
-These events are tracked automatically by the SDK:
+These events are tracked automatically:
 
 ### App Lifecycle
 
-| Event | Description | Properties |
-|-------|-------------|------------|
-| `app_session_started` | App launched | `isFirstLaunch`, `launchCount` |
-| `app_backgrounded` | App went to background | `sessionDurationSeconds` |
-| `app_foregrounded` | App came to foreground | — |
+| Event | Description |
+|-------|-------------|
+| `app_session_started` | App launched |
+| `app_backgrounded` | App went to background |
+| `app_foregrounded` | App came to foreground |
 
 ### Onboarding
 
-| Event | Description | Properties |
-|-------|-------------|------------|
-| `onboarding_started` | Onboarding overlay shown | `onboardingId`, `totalSteps` |
-| `onboarding_screen_viewed` | Screen displayed | `screenName`, `screenIndex`, `totalScreens`, `onboardingId` |
-| `onboarding_completed` | User finished all screens | `onboardingId`, `timeToCompleteSeconds`, `completedSteps`, `totalSteps` |
-| `onboarding_abandoned` | User closed early | `onboardingId`, `reason`, `lastScreenName`, `timeSpentSeconds` |
+| Event | Description |
+|-------|-------------|
+| `onboarding_started` | Onboarding overlay shown |
+| `onboarding_screen_viewed` | Screen displayed |
+| `onboarding_completed` | User finished all screens |
+| `onboarding_abandoned` | User closed early |
 
 ### Notifications
 
-| Event | Description | Properties |
-|-------|-------------|------------|
-| `notifications_prompt_shown` | Permission dialog shown | — |
-| `notifications_response` | User responded | `status` (`"granted"`, `"denied"`, `"provisional"`) |
+| Event | Description |
+|-------|-------------|
+| `notifications_prompt_shown` | Permission dialog shown |
+| `notifications_response` | User responded to permission |
 
-### Purchases (Auto-tracked via Transaction Observer)
+### Purchases
 
-| Event | Description | Properties |
-|-------|-------------|------------|
-| `purchase_started` | Purchase initiated | `productId`, `amount`, `currency` |
-| `purchase_completed` | Purchase successful | `productId`, `amount`, `currency`, `transactionId` |
-| `purchase_failed` | Purchase failed | `productId`, `errorCode`, `errorMessage` |
+| Event | Description |
+|-------|-------------|
+| `purchase_started` | Purchase initiated |
+| `purchase_completed` | Purchase successful |
+| `purchase_failed` | Purchase failed |
 
 ## Manual Event Tracking
-
-Track custom events using the public API:
 
 ### Track Custom Event
 
@@ -69,84 +67,37 @@ RampKit.trackCtaTap("upgrade_button", "Upgrade to Pro");
 // Parameters: buttonId, buttonText (optional)
 ```
 
-## Event Manager Direct Access
+## Event Manager Access
 
-For advanced use cases, access the event manager directly:
+For advanced use cases:
 
 ```typescript
 import { eventManager } from "rampkit-expo-dev";
 
 // Track paywall events
-eventManager.trackPaywallShown("paywall_main", "onboarding", [
-  { productId: "pro_monthly", price: 9.99, currency: "USD" },
-  { productId: "pro_yearly", price: 49.99, currency: "USD" },
-]);
-
+eventManager.trackPaywallShown("paywall_main", "onboarding");
 eventManager.trackPaywallPrimaryActionTap("paywall_main", "pro_monthly");
-
 eventManager.trackPaywallClosed("paywall_main", "purchased");
-// reason: "dismissed" | "purchased" | "backgrounded"
-
-// Track onboarding question answers
-eventManager.trackOnboardingQuestionAnswered(
-  "question_goal",
-  "weight_loss",
-  "What is your primary goal?"
-);
-```
-
-## Event Structure
-
-All events follow this structure:
-
-```typescript
-interface RampKitEvent {
-  appId: string;
-  appUserId: string;
-  eventId: string;        // Unique UUID for this event
-  eventName: string;
-  sessionId: string;
-  occurredAt: string;     // ISO timestamp
-  device: {
-    platform: string;
-    platformVersion: string;
-    deviceModel: string;
-    sdkVersion: string;
-    appVersion: string;
-    buildNumber: string;
-  };
-  context: {
-    screenName: string | null;
-    flowId: string | null;
-    variantId: string | null;
-    paywallId: string | null;
-    locale: string | null;
-    regionCode: string | null;
-    placement: string | null;
-  };
-  properties: Record<string, any>;
-}
-```
-
-## Context Management
-
-The event manager maintains context that's attached to all events:
-
-```typescript
-// Set current screen (auto-set during onboarding)
-eventManager.setCurrentScreen("pricing");
-
-// Set flow context (auto-set when onboarding starts)
-eventManager.setCurrentFlow("onboarding_v2", "variant_a");
-
-// Set paywall context
-eventManager.setCurrentPaywall("premium_paywall", "end_of_trial");
 ```
 
 ## Event Forwarding
 
-Events can be forwarded to your analytics provider. See [Analytics Forwarding](/expo/integration/analytics-forwarding) for details.
+Forward events to your analytics provider:
+
+```typescript
+import { eventManager } from "rampkit-expo-dev";
+
+const originalTrack = eventManager.track.bind(eventManager);
+
+eventManager.track = async (eventName, properties, context) => {
+  // Send to RampKit backend
+  await originalTrack(eventName, properties, context);
+  
+  // Forward to your analytics
+  myAnalytics.track(eventName, properties);
+};
+```
 
 <Tip>
-All events are sent as "fire and forget" — they don't block your app's main thread. The SDK handles retries and offline queueing automatically.
+All events are sent as "fire and forget" — they don't block your app's main thread.
 </Tip>

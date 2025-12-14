@@ -3,49 +3,11 @@ title: "Flows & Screens"
 description: "Understanding onboarding structure and navigation"
 ---
 
-RampKit onboardings are composed of flows containing multiple screens. Each screen is a self-contained HTML/CSS/JS document rendered in a native WebView.
-
-## Architecture
-
-```
-Onboarding Flow
-├── Screen 1 (Welcome)
-│   ├── HTML content
-│   ├── CSS styles
-│   └── JavaScript logic
-├── Screen 2 (Questions)
-│   └── ...
-├── Screen 3 (Personalization)
-│   └── ...
-└── Screen 4 (Paywall)
-    └── ...
-```
-
-## How Screens Are Rendered
-
-1. **Manifest Fetch** — SDK fetches your onboarding manifest from CDN
-2. **Screen Data** — Each screen contains HTML, CSS, and optional JS
-3. **Template Resolution** — `${device.*}` and `${user.*}` variables are resolved
-4. **HTML Document Build** — Full HTML documents are created
-5. **WebView Render** — Screens are rendered in a PagerView with WebViews
-
-## Screen Structure
-
-Each screen in your onboarding data:
-
-```typescript
-interface Screen {
-  id: string;       // Unique screen identifier
-  label?: string;   // Display name in editor
-  html: string;     // Screen HTML content
-  css?: string;     // Scoped CSS styles
-  js?: string;      // JavaScript logic
-}
-```
+RampKit onboardings consist of multiple screens that users navigate through. Each screen is rendered natively with smooth transitions.
 
 ## Navigation
 
-Navigation between screens is handled via WebView-to-native bridge messages:
+Navigation between screens is handled via messages from your onboarding content:
 
 ### Continue to Next Screen
 
@@ -77,9 +39,6 @@ window.ReactNativeWebView.postMessage(JSON.stringify({
   type: 'rampkit:goBack',
   animation: 'slideFade'
 }));
-
-// Or simple string
-window.ReactNativeWebView.postMessage('rampkit:goBack');
 ```
 
 ### Close Onboarding
@@ -104,9 +63,9 @@ window.ReactNativeWebView.postMessage(JSON.stringify({
 
 | Type | Description | Use Case |
 |------|-------------|----------|
-| `fade` | Crossfade with white curtain | Default, smooth transition |
-| `slide` | Native PagerView slide | Swipe-like feel |
-| `slideFade` | Combined slide + fade | Premium, polished feel |
+| `fade` | Crossfade transition | Default, smooth |
+| `slide` | Native slide animation | Swipe-like feel |
+| `slideFade` | Combined slide + fade | Premium, polished |
 
 ## Screen State
 
@@ -124,48 +83,6 @@ document.addEventListener('rampkit:vars-updated', (event) => {
 });
 ```
 
-## Screen Lifecycle
-
-### On Load
-
-When a screen first loads, the SDK:
-1. Injects hardening scripts (prevents text selection, zoom)
-2. Injects button animation scripts
-3. Injects variable handler scripts
-4. Sends current variables to the WebView
-
-### On Become Active
-
-When navigating to a screen:
-1. Variables are synced from the SDK
-2. `rampkit:vars-updated` event is dispatched
-3. Screen can react to current state
-
-### On Leave
-
-When navigating away:
-1. Any pending variable updates are sent
-2. Screen remains in memory (offscreen)
-
-## Required Scripts
-
-Onboardings can specify external scripts to load:
-
-```typescript
-interface OnboardingData {
-  screens: Screen[];
-  requiredScripts?: string[]; // External JS dependencies
-  variables?: {
-    state?: Array<{
-      name: string;
-      initialValue: any;
-    }>;
-  };
-}
-```
-
-These scripts are preloaded and available to all screens.
-
 ## Best Practices
 
 <Tip>
@@ -173,9 +90,4 @@ These scripts are preloaded and available to all screens.
 - Use **shared variables** for cross-screen state
 - Add **haptic feedback** for important interactions
 - Test **animation performance** on real devices
-- Use **platform-specific** content via templates
 </Tip>
-
-<Warning>
-Avoid heavy JavaScript operations that could cause frame drops during navigation. The overlay uses 60fps animations.
-</Warning>

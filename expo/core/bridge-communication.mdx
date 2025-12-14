@@ -3,154 +3,103 @@ title: "Bridge Communication"
 description: "WebView ↔ Native message passing and variable synchronization"
 ---
 
-RampKit uses a bridge between WebView content and native code for seamless communication. This enables your onboarding screens to interact with native features and share state.
+RampKit uses a bridge between your onboarding content and native code for seamless communication.
 
-## Message Flow
+## Sending Messages to Native
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         WebView                              │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │  window.ReactNativeWebView.postMessage(JSON.stringify({  │
-│  │    type: 'rampkit:variables',                           │
-│  │    vars: { selectedGoal: 'fitness' }                    │
-│  │  }));                                                   │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      RampKit SDK                             │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │  onMessage handler parses and routes messages:          │
-│  │  - Variables → broadcastVars()                          │
-│  │  - Navigation → navigateToIndex()                       │
-│  │  - Haptics → Haptics.impactAsync()                      │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     All WebViews                             │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │  webview.injectJavaScript(buildDirectVarsScript(...))   │
-│  │  → window.__rampkitVariables = newVars                  │
-│  │  → document.dispatchEvent('rampkit:vars-updated')       │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Sending Messages (WebView → Native)
+Use `window.ReactNativeWebView.postMessage()` from your onboarding content:
 
 ```javascript
-// Always use JSON for structured data
+// Simple string message
+window.ReactNativeWebView.postMessage('continue');
+
+// JSON payload
 window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:navigate',
+  targetScreenId: 'screen_2',
+  animation: 'fade'
+}));
+```
+
+## Supported Actions
+
+### Navigation
+
+```javascript
+// Continue to next screen
+{ type: 'rampkit:continue', animation: 'fade' | 'slide' | 'slideFade' }
+
+// Navigate to specific screen
+{ type: 'rampkit:navigate', targetScreenId: 'screen_id', animation: '...' }
+
+// Go back
+{ type: 'rampkit:goBack', animation: '...' }
+
+// Close onboarding
+{ type: 'rampkit:close' }
+
+// Complete onboarding
+{ type: 'rampkit:onboarding-finished', payload: { ... } }
+```
+
+### Variables
+
+```javascript
+// Update shared variables
+{
   type: 'rampkit:variables',
   vars: {
-    selectedPlan: 'premium',
-    notificationsEnabled: true
+    selectedGoal: 'weight_loss',
+    selectedPlan: 'premium'
   }
-}));
-
-// Simple string messages for basic actions
-window.ReactNativeWebView.postMessage('continue');
-window.ReactNativeWebView.postMessage('rampkit:close');
+}
 ```
 
-## Receiving Messages (Native → WebView)
-
-The SDK injects scripts that set up listeners:
+### Haptics
 
 ```javascript
-// Variables are set directly
-window.__rampkitVariables = { selectedGoal: 'fitness' };
+// Trigger haptic feedback
+{
+  type: 'rampkit:haptic',
+  action: 'haptic',
+  hapticType: 'impact' | 'notification' | 'selection',
+  impactStyle: 'Light' | 'Medium' | 'Heavy',
+  notificationType: 'Success' | 'Warning' | 'Error'
+}
+```
 
-// Events are dispatched
+### System Actions
+
+```javascript
+// Request store review
+{ type: 'rampkit:request-review' }
+
+// Request notification permissions
+{ type: 'rampkit:request-notification-permission' }
+
+// Show paywall
+{ type: 'rampkit:show-paywall', payload: { productId: 'pro_monthly' } }
+```
+
+## Receiving Updates
+
+Listen for variable updates in your onboarding content:
+
+```javascript
+// Variables are available globally
+const goal = window.__rampkitVariables?.selectedGoal;
+
+// Listen for updates
 document.addEventListener('rampkit:vars-updated', (event) => {
   const vars = event.detail;
   console.log('Variables updated:', vars);
   updateUI(vars);
 });
-
-// Also available via window
-window.addEventListener('message', (event) => {
-  if (event.data?.type === 'rampkit:variables') {
-    const vars = event.data.vars;
-    // Handle update
-  }
-});
-
-// Global callback
-window.onRampkitVarsUpdate = function(vars) {
-  // Handle update
-};
-```
-
-## Variable Synchronization
-
-Variables are synchronized across all screens:
-
-### Setting Variables
-
-```javascript
-// From any screen
-window.ReactNativeWebView.postMessage(JSON.stringify({
-  type: 'rampkit:variables',
-  vars: {
-    selectedGoal: 'weight_loss',
-    experienceLevel: 'beginner'
-  }
-}));
-```
-
-### Reading Variables
-
-```javascript
-// Synchronous access
-const goal = window.__rampkitVariables?.selectedGoal;
-
-// Or request fresh variables
-window.ReactNativeWebView.postMessage(JSON.stringify({
-  type: 'rampkit:request-vars'
-}));
-```
-
-### Reacting to Changes
-
-```javascript
-document.addEventListener('rampkit:vars-updated', (event) => {
-  const vars = event.detail;
-  
-  // Update UI based on selections
-  if (vars.selectedPlan === 'premium') {
-    showPremiumFeatures();
-  }
-  
-  // Conditionally show elements
-  document.getElementById('trial-banner').style.display = 
-    vars.hasUsedTrial ? 'none' : 'block';
-});
-```
-
-## Stale Value Filtering
-
-The SDK prevents outdated values from overwriting current state:
-
-1. When the SDK sends variables to a screen, it records the timestamp
-2. If a screen sends back empty/default values within 600ms, they're ignored
-3. This prevents "echo" loops when screens initialize
-
-```javascript
-// This won't overwrite a non-empty host value if sent too quickly
-window.ReactNativeWebView.postMessage(JSON.stringify({
-  type: 'rampkit:variables',
-  vars: { selectedGoal: '' } // Ignored if host has a value
-}));
 ```
 
 ## Device Context
 
-Device and user context is available via `window.rampkitContext`:
+Device and user context is available:
 
 ```javascript
 const ctx = window.rampkitContext;
@@ -158,7 +107,6 @@ const ctx = window.rampkitContext;
 console.log(ctx.device.platform);      // "iOS"
 console.log(ctx.device.currencyCode);  // "USD"
 console.log(ctx.user.isNewUser);       // true
-console.log(ctx.user.id);              // "rk_abc123..."
 ```
 
 ## Notification Permission Flow
@@ -166,12 +114,7 @@ console.log(ctx.user.id);              // "rk_abc123..."
 ```javascript
 // Request permission
 window.ReactNativeWebView.postMessage(JSON.stringify({
-  type: 'rampkit:request-notification-permission',
-  ios: {
-    allowAlert: true,
-    allowBadge: true,
-    allowSound: true
-  }
+  type: 'rampkit:request-notification-permission'
 }));
 
 // Result is stored in variables
@@ -179,32 +122,6 @@ document.addEventListener('rampkit:vars-updated', (event) => {
   const { notificationsPermission } = event.detail;
   if (notificationsPermission) {
     console.log('Granted:', notificationsPermission.granted);
-    console.log('Status:', notificationsPermission.status);
-  }
-});
-```
-
-## Paywall Integration
-
-Trigger your app's paywall:
-
-```javascript
-window.ReactNativeWebView.postMessage(JSON.stringify({
-  type: 'rampkit:show-paywall',
-  payload: {
-    productId: 'pro_monthly',
-    placement: 'onboarding'
-  }
-}));
-```
-
-Your native code handles this via `onShowPaywall`:
-
-```typescript
-RampKit.init({
-  appId: "YOUR_APP_ID",
-  onShowPaywall: async (payload) => {
-    await showRevenueCatPaywall(payload?.productId);
   }
 });
 ```

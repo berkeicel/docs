@@ -1,9 +1,9 @@
 ---
 title: "Debug Tips"
-description: "Tips and techniques for debugging RampKit integrations"
+description: "Techniques for debugging RampKit integrations"
 ---
 
-## Enable Verbose Logging
+## Enable Debug Mode
 
 ```typescript
 await RampKit.init({
@@ -12,7 +12,7 @@ await RampKit.init({
 });
 ```
 
-All RampKit logs are prefixed with `[RampKit]`:
+All logs are prefixed with `[RampKit]`:
 
 ```
 [RampKit] Init: Collecting device info...
@@ -21,8 +21,6 @@ All RampKit logs are prefixed with `[RampKit]`:
 ```
 
 ## Inspect Device Context
-
-Check what values your templates will resolve to:
 
 ```typescript
 import { collectDeviceInfo, buildRampKitContext } from "rampkit-expo-dev";
@@ -36,132 +34,26 @@ async function debugContext() {
 }
 ```
 
-## Debug Onboarding Data
-
-Verify your onboarding configuration loaded correctly:
-
-```typescript
-const data = RampKit.getOnboardingData();
-
-if (data) {
-  console.log("Onboarding ID:", data.onboardingId);
-  console.log("Screen count:", data.screens?.length);
-  console.log("Screen IDs:", data.screens?.map(s => s.id));
-  console.log("Variables:", data.variables);
-} else {
-  console.log("No onboarding data loaded!");
-}
-```
-
-## WebView Console Logging
-
-Add console logging to your onboarding screens:
-
-```javascript
-// In your screen's JavaScript
-console.log("Screen loaded");
-console.log("Variables:", window.__rampkitVariables);
-console.log("Context:", window.rampkitContext);
-
-// These logs appear in React Native's console
-```
-
-## Debug Variable Flow
-
-Track variable synchronization:
-
-```javascript
-// In your onboarding screen
-document.addEventListener('rampkit:vars-updated', (event) => {
-  console.log("=== VARS UPDATED ===");
-  console.log("New values:", JSON.stringify(event.detail, null, 2));
-  console.log("====================");
-});
-
-// When setting variables
-const vars = { selectedGoal: 'fitness' };
-console.log("Sending vars:", vars);
-window.ReactNativeWebView.postMessage(JSON.stringify({
-  type: 'rampkit:variables',
-  vars: vars
-}));
-```
-
 ## Test Native APIs
 
-Verify native modules are working:
-
 ```typescript
-import { Haptics, StoreReview, Notifications, RampKitNative } from "rampkit-expo-dev";
+import { Haptics, StoreReview, Notifications } from "rampkit-expo-dev";
 
 async function testNativeAPIs() {
   // Test haptics
-  console.log("Testing haptics...");
   await Haptics.impactAsync("medium");
-  console.log("Haptics done");
 
-  // Test store review availability
+  // Test store review
   const reviewAvailable = await StoreReview.isAvailableAsync();
   console.log("Store review available:", reviewAvailable);
 
-  // Test notification permissions
-  const notifStatus = await Notifications.getPermissionsAsync();
-  console.log("Notification status:", notifStatus);
-
-  // Test native module directly
-  const userId = await RampKitNative.getUserId();
-  console.log("User ID from native:", userId);
+  // Test notifications
+  const status = await Notifications.getPermissionsAsync();
+  console.log("Notification status:", status);
 }
 ```
 
-## Network Debugging
-
-Check if manifest loads correctly:
-
-```typescript
-// The manifest URL format
-const manifestUrl = `https://dh1psiwzzzkgr.cloudfront.net/${appId}/manifest.json`;
-
-// Manually fetch to test
-fetch(manifestUrl)
-  .then(res => res.json())
-  .then(data => console.log("Manifest:", data))
-  .catch(err => console.error("Manifest error:", err));
-```
-
-## Event Tracking Debug
-
-Verify events are being sent:
-
-```typescript
-import { eventManager } from "rampkit-expo-dev";
-
-// The event manager logs sent events in development mode
-// Look for: [RampKit] EventManager: Event sent: {eventName}
-
-// Manual event tracking test
-RampKit.trackEvent("debug_test", {
-  timestamp: new Date().toISOString(),
-  source: "debug"
-});
-```
-
-## Session Debug
-
-Check session information:
-
-```typescript
-import { getSessionStartTime, getSessionDurationSeconds } from "rampkit-expo-dev";
-
-console.log("Session started:", getSessionStartTime()?.toISOString());
-console.log("Session duration:", getSessionDurationSeconds(), "seconds");
-console.log("User ID:", RampKit.getUserId());
-console.log("Device:", RampKit.getDeviceInfo()?.deviceModel);
-```
-
-## Common Debug Patterns
-
-### Check Initialization Order
+## Check Initialization
 
 ```typescript
 useEffect(() => {
@@ -172,61 +64,26 @@ useEffect(() => {
     console.log("2. Init complete");
     console.log("   - Initialized:", RampKit.isInitialized());
     console.log("   - User ID:", RampKit.getUserId());
-    console.log("   - Has data:", !!RampKit.getOnboardingData());
     
     console.log("3. Showing onboarding...");
     RampKit.showOnboarding();
-    console.log("4. showOnboarding called");
   }
   
   init().catch(e => console.error("Init error:", e));
 }, []);
 ```
 
-### Debug WebView Messages
+## Console Filtering
 
-In development, log all WebView messages:
+Filter logs in your debugger:
+- Search: `[RampKit]`
+- Shows: Init, events, errors
 
-```typescript
-// This is internal to the SDK, but you can add similar logging
-// in your own WebView components
+## Best Practices
 
-onMessage={(event) => {
-  console.log("WebView message:", event.nativeEvent.data);
-}}
-```
-
-## React Native Debugger
-
-Use React Native Debugger or Flipper for:
-- Network request inspection
-- Console log filtering
-- Redux state (if using)
-- Component inspection
-
-Filter logs with `[RampKit]` to see only SDK-related output.
-
-## Production Debugging
-
-For production issues:
-
-1. **Check analytics** — Events in RampKit dashboard show SDK activity
-2. **Add error boundaries** — Catch and report errors
-3. **Use Sentry/Bugsnag** — Capture crashes with context
-
-```typescript
-try {
-  await RampKit.init({ appId: "YOUR_APP_ID" });
-} catch (error) {
-  Sentry.captureException(error, {
-    extra: {
-      sdkMethod: "init",
-      hasDeviceInfo: !!RampKit.getDeviceInfo()
-    }
-  });
-}
-```
-
-<Warning>
-Remember to disable verbose logging and remove debug code before production builds.
-</Warning>
+<Tip>
+- Always test on real devices for haptics and purchases
+- Use development environment during development
+- Check logs when debugging issues
+- Disable debug mode before production builds
+</Tip>

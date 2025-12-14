@@ -3,192 +3,55 @@ title: "Conversion Analytics"
 description: "Track and analyze conversion funnel performance"
 ---
 
-RampKit provides detailed analytics for understanding how users move through your onboarding and convert.
+Use RampKit's analytics to understand how users move through your onboarding.
 
 ## Automatic Tracking
 
-The SDK automatically tracks these conversion-related events:
+The SDK tracks:
 
-| Event | Tracked Data |
-|-------|--------------|
+| Event | Data |
+|-------|------|
 | `onboarding_started` | Flow ID, total steps |
-| `onboarding_screen_viewed` | Screen ID, index, total screens |
-| `onboarding_completed` | Time to complete, steps completed |
-| `onboarding_abandoned` | Reason, last screen, time spent |
+| `onboarding_screen_viewed` | Screen ID, index |
+| `onboarding_completed` | Time to complete, steps |
+| `onboarding_abandoned` | Reason, last screen |
 | `notifications_response` | Permission status |
-| `purchase_completed` | Product, amount, transaction ID |
+| `purchase_completed` | Product, amount |
 
-## Funnel Analysis
+## Key Metrics
 
-Track the full conversion funnel:
+| Metric | Calculation |
+|--------|-------------|
+| **Completion Rate** | Completed / Started |
+| **Drop-off Rate** | Abandoned by screen |
+| **Time to Complete** | Average seconds |
+| **Notification Opt-in** | Granted / Prompted |
+| **Purchase Rate** | Purchases / Completed |
 
-```
-Install → Onboarding Start → Screen Views → Completion → Purchase
-```
-
-### Calculate Funnel Metrics
-
-```typescript
-import { eventManager } from "rampkit-expo-dev";
-
-// Forward events to your analytics for funnel analysis
-const originalTrack = eventManager.track.bind(eventManager);
-eventManager.track = async (eventName, properties, context) => {
-  await originalTrack(eventName, properties, context);
-  
-  // Track funnel events specifically
-  switch (eventName) {
-    case "onboarding_started":
-      analytics.track("funnel_step_1_start", { flow: context?.flowId });
-      break;
-    case "onboarding_completed":
-      analytics.track("funnel_step_2_complete", { 
-        flow: context?.flowId,
-        duration: properties.timeToCompleteSeconds 
-      });
-      break;
-    case "purchase_completed":
-      analytics.track("funnel_step_3_purchase", {
-        product: properties.productId,
-        revenue: properties.amount
-      });
-      break;
-  }
-};
-```
-
-## Key Conversion Metrics
-
-### Onboarding Completion Rate
-
-```
-Completion Rate = onboarding_completed / onboarding_started × 100%
-```
-
-Track by variant:
-```typescript
-// Events include context.variantId
-// Dashboard shows completion rate per variant
-```
-
-### Screen-by-Screen Drop-off
-
-Identify where users abandon:
-
-```typescript
-// onboarding_abandoned includes:
-{
-  lastScreenName: "screen_pricing",
-  timeSpentSeconds: 45,
-  reason: "dismissed"
-}
-```
-
-### Time to Complete
-
-```typescript
-// onboarding_completed includes:
-{
-  timeToCompleteSeconds: 120,
-  completedSteps: 5,
-  totalSteps: 5
-}
-```
-
-### Notification Opt-in Rate
-
-```
-Opt-in Rate = notifications_response(granted) / notifications_prompt_shown × 100%
-```
-
-### Purchase Conversion
-
-Track purchases within time windows:
-
-```typescript
-// Track purchase attribution
-RampKit.trackEvent("purchase_attribution", {
-  productId: "pro_monthly",
-  daysSinceOnboarding: 2,
-  onboardingVariant: "variant_a"
-});
-```
-
-## Dashboard Analytics
-
-The RampKit dashboard provides:
-
-- **Flow Overview** — Total users, completion rate, avg. time
-- **Screen Analytics** — Views, drop-offs, engagement per screen
-- **Variant Comparison** — A/B test performance
-- **Conversion Trends** — Daily/weekly metrics
-- **User Segments** — By device, locale, new vs. returning
-
-## Custom Conversion Events
+## Custom Events
 
 Track additional conversion points:
 
 ```typescript
 // Track trial start
-RampKit.trackEvent("trial_started", {
-  plan: "pro",
-  trialDays: 7,
-  source: "onboarding"
-});
+RampKit.trackEvent("trial_started", { plan: "premium" });
 
-// Track activation events
-RampKit.trackEvent("feature_activated", {
-  feature: "dark_mode",
-  daysAfterOnboarding: 1
-});
-
-// Track retention
-RampKit.trackEvent("day_n_retention", {
-  day: 7,
-  isActive: true,
-  completedOnboarding: true
-});
+// Track feature activation
+RampKit.trackEvent("feature_activated", { feature: "dark_mode" });
 ```
 
-## Cohort Analysis
-
-Group users by onboarding characteristics:
+## Forward to Analytics
 
 ```typescript
-const deviceInfo = RampKit.getDeviceInfo();
+import { eventManager } from "rampkit-expo-dev";
 
-// Include cohort info in events
-RampKit.trackEvent("cohort_event", {
-  // Onboarding cohort
-  onboardingVersion: "v2.3",
-  onboardingVariant: "premium_focus",
-  // User characteristics
-  isFirstTimeUser: deviceInfo?.isFirstLaunch,
-  platform: deviceInfo?.platform,
-  locale: deviceInfo?.deviceLocale,
-  // Acquisition
-  daysSinceInstall: deviceInfo ? calculateDays(deviceInfo.installDate) : 0,
-});
+const originalTrack = eventManager.track.bind(eventManager);
+eventManager.track = async (eventName, properties, context) => {
+  await originalTrack(eventName, properties, context);
+  myAnalytics.track(eventName, properties);
+};
 ```
 
-## Best Practices
-
 <Tip>
-- **Define success metrics early** — Know what conversion means for your app
-- **Track the full funnel** — From install to monetization
-- **Segment your data** — Results vary by user type
-- **Set up alerts** — Get notified when metrics drop
-- **Regular reviews** — Weekly analysis of conversion trends
+Use the RampKit dashboard to visualize funnels and identify drop-off points.
 </Tip>
-
-## Example: Conversion Dashboard
-
-Build a conversion dashboard tracking:
-
-1. **Daily Active Users (DAU)** who saw onboarding
-2. **Onboarding completion rate** by day
-3. **Day-1 purchase rate** after onboarding
-4. **Day-7 retention** by onboarding variant
-5. **Revenue per user (ARPU)** by variant
-
-Use your analytics provider (Amplitude, Mixpanel, etc.) with forwarded RampKit events.

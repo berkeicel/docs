@@ -1,158 +1,94 @@
 ---
 title: "Variables & State"
-description: "Manage shared state across screens with template variables and context injection"
+description: "Manage shared state across screens with template variables"
 ---
 
-RampKit provides a powerful variable system that enables personalized onboarding experiences. Variables are shared across all screens and can be used for dynamic content rendering.
+RampKit provides a variable system for personalized onboarding experiences. Variables are shared across all screens.
 
 ## Template Variables
 
-Your onboarding HTML can include template variables that are resolved at runtime:
+Your onboarding content can include template variables:
 
 ```html
-<h1>Welcome, ${user.isNewUser ? "friend" : "back"}!</h1>
-<p>You're on ${device.platform} ${device.model}</p>
+<h1>Welcome${user.isNewUser ? "" : " back"}!</h1>
+<p>You're on ${device.platform}</p>
 <p>Local currency: ${device.currencySymbol}</p>
 ```
 
 ## Device Context
 
-The SDK automatically injects device information into templates:
-
-| Variable | Type | Example |
-|----------|------|---------|
-| `${device.platform}` | string | `"iOS"`, `"Android"`, `"iPadOS"` |
-| `${device.model}` | string | `"iPhone 15 Pro"`, `"Pixel 7"` |
-| `${device.locale}` | string | `"en_US"`, `"fr_FR"` |
-| `${device.language}` | string | `"en"`, `"fr"` |
-| `${device.country}` | string | `"US"`, `"FR"` |
-| `${device.currencyCode}` | string | `"USD"`, `"EUR"` |
-| `${device.currencySymbol}` | string | `"$"`, `"€"` |
-| `${device.appVersion}` | string | `"1.0.0"` |
-| `${device.buildNumber}` | string | `"123"` |
-| `${device.bundleId}` | string | `"com.example.app"` |
-| `${device.interfaceStyle}` | string | `"light"`, `"dark"` |
-| `${device.timezone}` | number | `-25200` (seconds from GMT) |
-| `${device.daysSinceInstall}` | number | `3` |
+| Variable | Example |
+|----------|---------|
+| `${device.platform}` | `"iOS"`, `"Android"` |
+| `${device.model}` | `"iPhone 15 Pro"` |
+| `${device.locale}` | `"en_US"` |
+| `${device.language}` | `"en"` |
+| `${device.country}` | `"US"` |
+| `${device.currencyCode}` | `"USD"` |
+| `${device.currencySymbol}` | `"$"` |
+| `${device.interfaceStyle}` | `"light"`, `"dark"` |
+| `${device.daysSinceInstall}` | `3` |
 
 ## User Context
 
-User-specific information is also available:
-
-| Variable | Type | Example |
-|----------|------|---------|
-| `${user.id}` | string | `"rk_abc123..."` |
-| `${user.isNewUser}` | boolean | `true`, `false` |
-| `${user.hasAppleSearchAdsAttribution}` | boolean | `true`, `false` |
-| `${user.sessionId}` | string | `"session_xyz..."` |
-| `${user.installedAt}` | string | ISO date string |
+| Variable | Example |
+|----------|---------|
+| `${user.id}` | `"rk_abc123..."` |
+| `${user.isNewUser}` | `true`, `false` |
+| `${user.sessionId}` | `"session_xyz..."` |
 
 ## Conditional Expressions
-
-Use ternary operators for conditional content:
 
 ```html
 <!-- Boolean conditions -->
 <p>${user.isNewUser ? "Start your journey" : "Welcome back"}</p>
 
-<!-- Comparison operators -->
+<!-- Comparisons -->
 <p>${device.daysSinceInstall > 7 ? "You're a regular!" : "Getting started"}</p>
 
-<!-- Platform-specific content -->
+<!-- Platform-specific -->
 <button>${device.platform == "iOS" ? "Continue with Apple" : "Continue with Google"}</button>
-
-<!-- Currency formatting -->
-<p>Only ${device.currencySymbol}9.99/month</p>
 ```
-
-### Supported Operators
-
-| Operator | Description |
-|----------|-------------|
-| `==` | Equals |
-| `!=` | Not equals |
-| `>` | Greater than |
-| `<` | Less than |
-| `>=` | Greater or equal |
-| `<=` | Less or equal |
-| Truthy | Variable name only (checks truthiness) |
 
 ## State Variables
 
-Beyond device/user context, onboardings can define custom state variables that persist across screens:
+Variables persist across screens and sync in real-time:
 
 ```javascript
-// In your onboarding's JavaScript
-window.__rampkitVariables = {
-  selectedGoal: "weight_loss",
-  selectedPlan: "premium",
-  notificationsEnabled: false,
-};
-```
-
-## Variable Synchronization
-
-Variables are synchronized across all WebView screens in real-time:
-
-1. **User interaction** — Button tap updates a variable
-2. **SDK captures** — Change is detected via `rampkit:variables` message
-3. **Broadcast** — All other screens receive the update
-4. **Re-render** — Screens can react to variable changes
-
-### Listening for Variable Updates (in WebView)
-
-```javascript
-// Listen for variable updates
-document.addEventListener('rampkit:vars-updated', (event) => {
-  const vars = event.detail;
-  console.log('Variables updated:', vars);
-  
-  // Re-render your UI based on new values
-  if (vars.selectedPlan) {
-    updatePlanDisplay(vars.selectedPlan);
-  }
-});
-
-// Or use the global callback
-window.onRampkitVarsUpdate = function(vars) {
-  console.log('New variables:', vars);
-};
-```
-
-### Sending Variables (from WebView)
-
-```javascript
-// Update a variable
+// Set variables
 window.ReactNativeWebView.postMessage(JSON.stringify({
   type: 'rampkit:variables',
   vars: {
-    selectedGoal: 'muscle_gain',
+    selectedGoal: 'weight_loss',
+    selectedPlan: 'premium'
   }
 }));
 ```
 
-## Accessing Context Programmatically
+## Listening for Updates
 
-```typescript
-import { buildRampKitContext, collectDeviceInfo } from "rampkit-expo-dev";
-
-async function getContext() {
-  const deviceInfo = await collectDeviceInfo();
-  const context = buildRampKitContext(deviceInfo);
+```javascript
+// Listen for variable updates from other screens
+document.addEventListener('rampkit:vars-updated', (event) => {
+  const vars = event.detail;
+  console.log('Variables updated:', vars);
   
-  return context; // { device: {...}, user: {...} }
-}
+  if (vars.selectedPlan) {
+    updatePlanDisplay(vars.selectedPlan);
+  }
+});
 ```
 
-## Best Practices
+## Accessing Variables
+
+```javascript
+// Access current variables
+const vars = window.__rampkitVariables || {};
+console.log('Selected goal:', vars.selectedGoal);
+```
 
 <Tip>
 - Use device context for **localization** (currency, language)
 - Use user context for **personalization** (new vs. returning)
 - Use state variables for **user choices** during onboarding
-- Keep variable names consistent between your editor and code
 </Tip>
-
-<Warning>
-Template variables are resolved **before** the WebView loads. If you need dynamic updates, use the state variable system instead.
-</Warning>

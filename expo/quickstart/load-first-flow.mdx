@@ -9,8 +9,6 @@ After initialization, showing an onboarding flow is a single line of code:
 RampKit.showOnboarding();
 ```
 
-The SDK automatically loads your onboarding configuration from the RampKit dashboard and renders it in a native WebView overlay.
-
 ## Basic Usage
 
 ```typescript
@@ -61,19 +59,6 @@ To programmatically close the onboarding overlay:
 RampKit.closeOnboarding();
 ```
 
-This triggers the abandonment tracking and gracefully dismisses the overlay.
-
-## How It Works
-
-When you call `showOnboarding()`, the SDK:
-
-1. **Builds WebView screens** — Converts your onboarding data into optimized HTML/CSS/JS
-2. **Injects device context** — Template variables like `${device.platform}` are resolved
-3. **Renders in a PagerView** — Native swipe navigation between screens
-4. **Tracks analytics** — Onboarding start, screen views, completion, and abandonment
-5. **Handles interactions** — Button taps, haptic feedback, and navigation
-6. **Syncs variables** — State is shared across all screens in real-time
-
 ## Event Tracking
 
 The SDK automatically tracks these events during onboarding:
@@ -84,8 +69,6 @@ The SDK automatically tracks these events during onboarding:
 | `onboarding_screen_viewed` | Each screen view with index and ID |
 | `onboarding_completed` | When user finishes all screens |
 | `onboarding_abandoned` | When user closes early |
-| `notifications_prompt_shown` | When permission prompt appears |
-| `notifications_response` | User's notification permission response |
 
 <Tip>
 Use the RampKit dashboard to view analytics and A/B test different onboarding flows.

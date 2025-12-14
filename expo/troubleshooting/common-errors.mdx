@@ -12,20 +12,16 @@ Error: Cannot find native module 'RampKit'
 ```
 
 **Solution:**
-1. Ensure you've installed peer dependencies:
+1. Install peer dependencies:
    ```bash
    npx expo install react-native-webview react-native-pager-view react-native-root-siblings
    ```
 2. For bare React Native, run `npx pod-install`
-3. Rebuild your app: `npx expo run:ios` or `npx expo run:android`
+3. Rebuild your app
 
 ### Peer Dependency Warnings
 
-```
-warning "rampkit-expo-dev" has unmet peer dependency "react-native-webview@*"
-```
-
-**Solution:** Install the missing peer dependencies:
+**Solution:** Install missing peer dependencies:
 ```bash
 npx expo install react-native-webview react-native-pager-view react-native-root-siblings
 ```
@@ -36,125 +32,56 @@ npx expo install react-native-webview react-native-pager-view react-native-root-
 
 If `showOnboarding()` does nothing:
 
-1. **Check initialization:**
-   ```typescript
-   console.log("Initialized:", RampKit.isInitialized());
-   console.log("Onboarding data:", RampKit.getOnboardingData());
-   ```
+```typescript
+// Check initialization
+console.log("Initialized:", RampKit.isInitialized());
 
-2. **Verify app ID:**
-   ```typescript
-   await RampKit.init({ appId: "YOUR_ACTUAL_APP_ID" });
-   ```
-
-3. **Check for network issues:**
-   - Ensure your device has internet access
-   - Check if the manifest URL is accessible
+// Ensure init completed
+await RampKit.init({ appId: "YOUR_APP_ID" });
+RampKit.showOnboarding();
+```
 
 ### Events Not Being Tracked
 
-If events aren't appearing in the dashboard:
-
-1. **Check initialization timing:**
-   ```typescript
-   // Ensure init completes before tracking
-   await RampKit.init({ appId: "YOUR_APP_ID" });
-   RampKit.trackEvent("test_event", {});
-   ```
-
-2. **Verify event manager is initialized:**
-   ```typescript
-   import { eventManager } from "rampkit-expo-dev";
-   console.log("Event manager ready:", eventManager.isInitialized());
-   ```
+```typescript
+// Ensure init completes before tracking
+await RampKit.init({ appId: "YOUR_APP_ID" });
+RampKit.trackEvent("test_event", {});
+```
 
 ## WebView Issues
 
-### Blank Screen in Onboarding
+### Blank Screen
 
-If the onboarding shows a blank screen:
-
-1. **Check for JavaScript errors:**
-   - Enable remote debugging
-   - Check the Metro bundler console
-
-2. **Verify HTML content:**
-   ```typescript
-   const data = RampKit.getOnboardingData();
-   console.log("First screen HTML:", data?.screens?.[0]?.html);
-   ```
-
-3. **Check template resolution:**
-   - Ensure device context is being passed correctly
-   - Look for unresolved `${device.*}` or `${user.*}` placeholders
+1. Enable debug mode and check logs
+2. Verify your app ID is correct
 
 ### Variables Not Syncing
 
-If variables aren't shared between screens:
-
-1. **Use correct message format:**
-   ```javascript
-   // Correct
-   window.ReactNativeWebView.postMessage(JSON.stringify({
-     type: 'rampkit:variables',
-     vars: { key: 'value' }
-   }));
-   
-   // Incorrect - missing JSON.stringify
-   window.ReactNativeWebView.postMessage({
-     type: 'rampkit:variables',
-     vars: { key: 'value' }
-   });
-   ```
-
-2. **Listen for updates correctly:**
-   ```javascript
-   document.addEventListener('rampkit:vars-updated', (e) => {
-     console.log('Received vars:', e.detail);
-   });
-   ```
+Use correct message format:
+```javascript
+// Correct
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'rampkit:variables',
+  vars: { key: 'value' }
+}));
+```
 
 ## Native API Issues
 
 ### Haptics Not Working
 
-```typescript
-import { Haptics } from "rampkit-expo-dev";
-await Haptics.impactAsync("medium"); // No haptic felt
-```
-
-**Possible causes:**
-- Running on simulator (no haptic motor)
-- Device doesn't support haptics
-- Silent mode on iOS
-
-**Solution:** Test on a real device with sound/haptics enabled.
+- Test on real device (not simulator)
+- Ensure device has haptic motor
+- Check silent mode on iOS
 
 ### Store Review Not Appearing
 
-```typescript
-await StoreReview.requestReview(); // Nothing happens
-```
-
-**Possible causes:**
-- Already shown recently (rate limited by OS)
-- App not installed from store (development builds)
-- Conditions not met (new install, minimal usage)
-
-**Solution:** The OS decides when to show the review prompt. It's not guaranteed to appear.
+The OS decides when to show review prompts. It's not guaranteed to appear every time.
 
 ### Notification Permission Denied
 
-```typescript
-const result = await Notifications.requestPermissionsAsync();
-// result.granted is false
-```
-
-**Possible causes:**
-- User previously denied permission
-- Permission already granted
-
-**Solution:** Check current status first:
+Check current status:
 ```typescript
 const status = await Notifications.getPermissionsAsync();
 if (status.status === 'denied' && !status.canAskAgain) {
@@ -162,64 +89,19 @@ if (status.status === 'denied' && !status.canAskAgain) {
 }
 ```
 
-## Performance Issues
-
-### Slow Onboarding Load
-
-If the onboarding takes too long to appear:
-
-1. **Check network:**
-   - Verify manifest CDN is accessible
-   - Check for slow network conditions
-
-2. **Enable preloading:**
-   ```typescript
-   // The SDK preloads automatically, but ensure init is called early
-   await RampKit.init({ appId: "YOUR_APP_ID" });
-   // Onboarding loads in background
-   
-   // Later, when you need it:
-   RampKit.showOnboarding(); // Should be instant
-   ```
-
-### Animation Jank
-
-If transitions are choppy:
-
-1. Avoid heavy JavaScript in screen transitions
-2. Keep DOM complexity reasonable
-3. Use `slideFade` animation for smoother feel:
-   ```javascript
-   window.ReactNativeWebView.postMessage(JSON.stringify({
-     type: 'rampkit:continue',
-     animation: 'slideFade'
-   }));
-   ```
-
 ## Debug Checklist
 
-<Steps>
-  <Step title="Enable Debug Mode">
-    ```typescript
-    await RampKit.init({
-      appId: "YOUR_APP_ID",
-      environment: "development"
-    });
-    ```
-  </Step>
-  <Step title="Check Logs">
-    Look for `[RampKit]` prefixed logs in the console
-  </Step>
-  <Step title="Verify Device Info">
-    ```typescript
-    console.log(RampKit.getDeviceInfo());
-    ```
-  </Step>
-  <Step title="Test on Real Device">
-    Many features (haptics, purchases) require real devices
-  </Step>
-</Steps>
+1. Enable development mode:
+   ```typescript
+   await RampKit.init({
+     appId: "YOUR_APP_ID",
+     environment: "development"
+   });
+   ```
+2. Check logs for `[RampKit]` prefix
+3. Verify `RampKit.isInitialized()` returns `true`
+4. Test on real device
 
 <Note>
-If you encounter issues not listed here, check the [GitHub Issues](https://github.com/getrampkit/rampkit-expo/issues) or contact support at hello@rampkit.com.
+For issues not listed here, check [GitHub Issues](https://github.com/getrampkit/rampkit-expo/issues) or contact hello@rampkit.com.
 </Note>
