@@ -1,11 +1,22 @@
 ---
 title: "RevenueCat"
-description: "Integrate RevenueCat for purchases"
+description: "Show RevenueCat Paywalls from your onboarding"
 ---
+
+Use RevenueCat Paywalls to show native paywalls designed in RevenueCat's dashboard.
+
+## Install
+
+```bash
+npx expo install react-native-purchases react-native-purchases-ui
+```
+
+## Setup
 
 ```typescript
 import { RampKit } from "rampkit-expo-dev";
 import Purchases from "react-native-purchases";
+import RevenueCatUI from "react-native-purchases-ui";
 
 // Initialize RevenueCat first
 await Purchases.configure({ apiKey: "YOUR_REVENUECAT_KEY" });
@@ -13,12 +24,24 @@ await Purchases.configure({ apiKey: "YOUR_REVENUECAT_KEY" });
 // Then RampKit
 await RampKit.init({
   appId: "YOUR_APP_ID",
-  onShowPaywall: async (payload) => {
-    const offerings = await Purchases.getOfferings();
-    if (offerings.current) {
-      const pkg = offerings.current.availablePackages[0];
-      await Purchases.purchasePackage(pkg);
-    }
+  onShowPaywall: async () => {
+    await RevenueCatUI.presentPaywallIfNeeded({
+      requiredEntitlementIdentifier: "premium",
+    });
   },
 });
 ```
+
+## Present Paywall
+
+```typescript
+// Show paywall only if user doesn't have entitlement
+await RevenueCatUI.presentPaywallIfNeeded({
+  requiredEntitlementIdentifier: "premium",
+});
+
+// Or always show paywall
+await RevenueCatUI.presentPaywall();
+```
+
+Design your paywall in the [RevenueCat dashboard](https://app.revenuecat.com).

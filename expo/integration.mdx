@@ -1,25 +1,37 @@
 ---
 title: "Integration"
-description: "Integrate with other services"
+description: "Integrate with paywall providers"
 ---
 
-## RevenueCat
+## RevenueCat Paywalls
 
 ```typescript
-import Purchases from "react-native-purchases";
+import RevenueCatUI from "react-native-purchases-ui";
 
 await RampKit.init({
   appId: "YOUR_APP_ID",
-  onShowPaywall: async (payload) => {
-    const offerings = await Purchases.getOfferings();
-    // Show paywall
+  onShowPaywall: async () => {
+    await RevenueCatUI.presentPaywallIfNeeded({
+      requiredEntitlementIdentifier: "premium",
+    });
   },
 });
 ```
 
-## Analytics
+## Superwall
 
-Forward events to your analytics:
+```typescript
+import Superwall from "@superwall/react-native-superwall";
+
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onShowPaywall: async () => {
+    await Superwall.shared.register({ event: "onboarding_paywall" });
+  },
+});
+```
+
+## Analytics Forwarding
 
 ```typescript
 import { eventManager } from "rampkit-expo-dev";

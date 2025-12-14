@@ -163,6 +163,7 @@
               "expo/integration/navigation-hooks",
               "expo/integration/offline-handling",
               "expo/integration/revenuecat",
+              "expo/integration/superwall",
               "expo/integration/ab-testing-integration",
               "expo/integration/analytics-forwarding",
               "expo/integration/deep-linking",

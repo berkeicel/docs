@@ -1,0 +1,40 @@
+---
+title: "Superwall"
+description: "Show Superwall paywalls from your onboarding"
+---
+
+Use Superwall to show paywalls designed in Superwall's dashboard.
+
+## Install
+
+```bash
+npm install @superwall/react-native-superwall
+```
+
+## Setup
+
+```typescript
+import { RampKit } from "rampkit-expo-dev";
+import Superwall from "@superwall/react-native-superwall";
+
+// Initialize Superwall first
+Superwall.configure({ apiKey: "YOUR_SUPERWALL_KEY" });
+
+// Then RampKit
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onShowPaywall: async () => {
+    await Superwall.shared.register({ event: "onboarding_paywall" });
+  },
+});
+```
+
+## Present Paywall
+
+```typescript
+// Register an event that triggers a paywall
+await Superwall.shared.register({ event: "campaign_trigger" });
+```
+
+Design your paywall and configure triggers in the [Superwall dashboard](https://superwall.com).
+

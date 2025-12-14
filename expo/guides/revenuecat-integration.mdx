@@ -1,21 +1,33 @@
 ---
 title: "RevenueCat Integration"
-description: "Add purchases"
+description: "Show RevenueCat Paywalls"
 ---
+
+## Install
+
+```bash
+npx expo install react-native-purchases react-native-purchases-ui
+```
+
+## Setup
 
 ```typescript
 import { RampKit } from "rampkit-expo-dev";
 import Purchases from "react-native-purchases";
+import RevenueCatUI from "react-native-purchases-ui";
 
+// Initialize RevenueCat
 await Purchases.configure({ apiKey: "YOUR_REVENUECAT_KEY" });
 
+// Initialize RampKit
 await RampKit.init({
   appId: "YOUR_APP_ID",
-  onShowPaywall: async (payload) => {
-    const offerings = await Purchases.getOfferings();
-    if (offerings.current) {
-      await Purchases.purchasePackage(offerings.current.availablePackages[0]);
-    }
+  onShowPaywall: async () => {
+    await RevenueCatUI.presentPaywallIfNeeded({
+      requiredEntitlementIdentifier: "premium",
+    });
   },
 });
 ```
+
+Design your paywall in the [RevenueCat dashboard](https://app.revenuecat.com).
