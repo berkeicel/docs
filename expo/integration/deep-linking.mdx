@@ -1,11 +1,6 @@
 ---
 title: "Deep Linking"
-description: "Trigger flows from deep links"
+description: "Configure in editor"
 ---
 
-```ts
-Linking.addEventListener("url", (event) => {
-  const flow = event.url.split("flow=")[1];
-  if (flow) RampKit.loadFlow(flow);
-});
-```
+Configure deep link handling in the [RampKit editor](https://rampkit.com).

@@ -1,82 +1,31 @@
 ---
-title: "Expo Setup Guide"
-description: "Complete setup guide for RampKit with Expo"
+title: "Expo Setup"
+description: "Setup guide"
 ---
 
-Step-by-step guide for setting up RampKit in an Expo project.
-
-## Prerequisites
-
-- Expo SDK 49.0.0+
-- Node.js 18+
-
-## Step 1: Install RampKit
+## Install
 
 ```bash
-npx expo install rampkit-expo-dev
+npx expo install rampkit-expo-dev react-native-webview react-native-pager-view react-native-root-siblings
 ```
 
-## Step 2: Install Peer Dependencies
-
-```bash
-npx expo install react-native-webview react-native-pager-view react-native-root-siblings
-```
-
-## Step 3: Configure App.tsx
+## Initialize
 
 ```typescript
-import { useEffect, useState } from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
 import { RampKit } from "rampkit-expo-dev";
 
-export default function App() {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    async function init() {
-      await RampKit.init({
-        appId: "YOUR_APP_ID",
-        onOnboardingFinished: () => {
-          // Navigate to main app
-        },
-      });
-      setReady(true);
-    }
-    init();
-    
-    return () => RampKit.cleanup();
-  }, []);
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome!</Text>
-      <Button
-        title="Start Onboarding"
-        onPress={() => RampKit.showOnboarding()}
-        disabled={!ready}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 24, marginBottom: 20 },
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onOnboardingFinished: () => {
+    navigation.replace("Home");
+  },
 });
 ```
 
-## Step 4: Get Your App ID
+## Show
 
-1. Go to [RampKit Dashboard](https://rampkit.com)
-2. Go to **Settings → App Configuration**
-3. Copy your **App ID**
-
-## Step 5: Test
-
-```bash
-npx expo start
+```typescript
+RampKit.showOnboarding();
 ```
 
-<Tip>
-Replace `YOUR_APP_ID` with your actual app ID from the dashboard.
-</Tip>
+Get your App ID from [RampKit Dashboard](https://rampkit.com) → Settings.

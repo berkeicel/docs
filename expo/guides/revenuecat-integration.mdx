@@ -1,91 +1,21 @@
 ---
-title: "RevenueCat Integration Guide"
-description: "Step-by-step guide to integrating RevenueCat with RampKit"
+title: "RevenueCat Integration"
+description: "Add purchases"
 ---
-
-Complete guide for integrating RevenueCat with RampKit onboarding.
-
-## Step 1: Install RevenueCat
-
-```bash
-npx expo install react-native-purchases
-```
-
-## Step 2: Initialize SDKs
 
 ```typescript
 import { RampKit } from "rampkit-expo-dev";
 import Purchases from "react-native-purchases";
 
-useEffect(() => {
-  async function init() {
-    // RevenueCat first
-    await Purchases.configure({ apiKey: "YOUR_REVENUECAT_KEY" });
+await Purchases.configure({ apiKey: "YOUR_REVENUECAT_KEY" });
 
-    // Then RampKit
-    await RampKit.init({
-      appId: "YOUR_APP_ID",
-      onShowPaywall: handlePaywall,
-      onOnboardingFinished: checkAndNavigate,
-    });
-  }
-  init();
-}, []);
-```
-
-## Step 3: Handle Paywall
-
-```typescript
-async function handlePaywall(payload?: { productId?: string }) {
-  try {
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onShowPaywall: async (payload) => {
     const offerings = await Purchases.getOfferings();
-    if (!offerings.current) return;
-
-    const packages = offerings.current.availablePackages;
-    const pkg = payload?.productId
-      ? packages.find(p => p.product.identifier === payload.productId)
-      : packages[0];
-
-    if (pkg) {
-      const { customerInfo } = await Purchases.purchasePackage(pkg);
-      if (customerInfo.entitlements.active["premium"]) {
-        console.log("User is now premium!");
-      }
+    if (offerings.current) {
+      await Purchases.purchasePackage(offerings.current.availablePackages[0]);
     }
-  } catch (error) {
-    if (!error.userCancelled) {
-      console.error("Purchase error:", error);
-    }
-  }
-}
+  },
+});
 ```
-
-## Step 4: Trigger from Onboarding
-
-In your onboarding content:
-
-```javascript
-window.ReactNativeWebView.postMessage(JSON.stringify({
-  type: 'rampkit:show-paywall',
-  payload: { productId: 'pro_monthly' }
-}));
-```
-
-## Step 5: Check Completion
-
-```typescript
-async function checkAndNavigate() {
-  const customerInfo = await Purchases.getCustomerInfo();
-  
-  if (customerInfo.entitlements.active["premium"]) {
-    navigation.replace("PremiumHome");
-  } else {
-    navigation.replace("Home");
-  }
-}
-```
-
-<Tip>
-- Initialize RevenueCat **before** RampKit
-- Test with sandbox accounts during development
-</Tip>

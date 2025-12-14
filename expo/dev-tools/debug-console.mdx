@@ -1,10 +1,13 @@
 ---
 title: "Debug Console"
-description: "Inspect variable changes and events in real time"
+description: "Enable logging"
 ---
 
-Enable debug logs for verbose output:
-
-```ts
-RampKit.enableDebug(true);
+```typescript
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  environment: "development",
+});
 ```
+
+Filter logs by `[RampKit]`.

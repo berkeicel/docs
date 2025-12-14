@@ -1,10 +1,15 @@
 ---
 title: "Web Checkout"
-description: "Open external checkouts and resume flows"
+description: "Paywall integration"
 ---
 
-```ts
-RampKit.openURL("https://checkout.yourapp.com?user_id=123");
-```
+Handle paywall requests from onboarding:
 
-Once complete, RampKit resumes the flow automatically.
+```typescript
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onShowPaywall: (payload) => {
+    // Show your paywall
+  },
+});
+```

@@ -1,10 +1,14 @@
 ---
 title: "Event Forwarding"
-description: "Send RampKit analytics to Mixpanel, Amplitude, or Firebase"
+description: "Forward to analytics"
 ---
 
-Forward RampKit analytics events to your preferred provider.
+```typescript
+import { eventManager } from "rampkit-expo-dev";
 
-```ts
-RampKit.forwardEventsTo("mixpanel", MIXPANEL_KEY);
+const originalTrack = eventManager.track.bind(eventManager);
+eventManager.track = async (eventName, properties, context) => {
+  await originalTrack(eventName, properties, context);
+  myAnalytics.track(eventName, properties);
+};
 ```

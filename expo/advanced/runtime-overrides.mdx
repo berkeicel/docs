@@ -1,79 +1,12 @@
 ---
-title: "Runtime Overrides"
-description: "Override SDK behavior at runtime"
+title: "Overrides"
+description: "Override callbacks"
 ---
 
-Advanced techniques for customizing RampKit behavior.
-
-## Configuration Overrides
-
-Override callbacks for specific invocations:
+Override callbacks per invocation:
 
 ```typescript
-// Default callback from init
-await RampKit.init({
-  appId: "YOUR_APP_ID",
-  onShowPaywall: defaultPaywallHandler,
-});
-
-// Override for specific call
 RampKit.showOnboarding({
   onShowPaywall: customPaywallHandler,
 });
 ```
-
-## Event Interception
-
-Override event tracking:
-
-```typescript
-import { eventManager } from "rampkit-expo-dev";
-
-const originalTrack = eventManager.track.bind(eventManager);
-
-eventManager.track = async (eventName, properties, context) => {
-  // Add custom logic
-  const enrichedProperties = {
-    ...properties,
-    customTimestamp: Date.now(),
-  };
-
-  // Call original
-  await originalTrack(eventName, enrichedProperties, context);
-  
-  // Forward to your analytics
-  myAnalytics.track(eventName, enrichedProperties);
-};
-```
-
-## Conditional Initialization
-
-```typescript
-const config = await determineConfig();
-
-await RampKit.init({
-  appId: config.appId,
-  environment: config.environment,
-  autoShowOnboarding: config.shouldAutoShow,
-});
-```
-
-## Error Handling
-
-```typescript
-async function safeShowOnboarding() {
-  try {
-    if (!RampKit.isInitialized()) {
-      await RampKit.init({ appId: "YOUR_APP_ID" });
-    }
-    RampKit.showOnboarding();
-  } catch (error) {
-    console.error("RampKit error:", error);
-    showFallbackOnboarding();
-  }
-}
-```
-
-<Warning>
-Runtime overrides can affect SDK behavior significantly. Test thoroughly.
-</Warning>

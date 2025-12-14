@@ -1,90 +1,36 @@
 ---
-title: "Initialize RampKit"
-description: "Initialize the SDK once at app startup with your app ID"
+title: "Initialize"
+description: "Initialize RampKit with your app ID"
 ---
 
-Initialize RampKit once at app startup, ideally in your `App.tsx` or root component. The SDK is a singleton that handles caching, analytics, and device info collection automatically.
+Initialize once at app startup:
 
 ```typescript
-import { useEffect } from "react";
 import { RampKit } from "rampkit-expo-dev";
 
-export default function App() {
-  useEffect(() => {
-    RampKit.init({
-      appId: "YOUR_APP_ID",
-      autoShowOnboarding: false,
-      onOnboardingFinished: (payload) => {
-        console.log("Onboarding finished:", payload);
-        // Navigate to main app
-      },
-    });
-  }, []);
-
-  return <YourAppContent />;
-}
-```
-
-## Configuration Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `appId` | `string` | **required** | Your RampKit app ID from the dashboard |
-| `autoShowOnboarding` | `boolean` | `false` | Automatically show onboarding after init |
-| `onOnboardingFinished` | `function` | `undefined` | Callback when onboarding completes |
-| `onShowPaywall` | `function` | `undefined` | Callback when paywall should be shown |
-| `environment` | `string` | `"production"` | `"production"` or `"development"` |
-
-## What Happens During Init
-
-When you call `RampKit.init()`, the SDK:
-
-1. **Collects device info** — Platform, locale, timezone, screen size, and more
-2. **Generates a stable user ID** — Stored securely in Keychain (iOS) / SharedPreferences (Android)
-3. **Sends user data to backend** — Enables analytics and personalization
-4. **Initializes event tracking** — Sets up automatic session and lifecycle tracking
-5. **Starts transaction observer** — Monitors purchases for automatic revenue tracking
-6. **Loads onboarding data** — Fetches your latest onboarding configuration
-
-## Check Initialization Status
-
-```typescript
-// Check if SDK is ready
-const isReady = RampKit.isInitialized();
-
-// Get the generated user ID
-const userId = RampKit.getUserId();
-
-// Get collected device info
-const deviceInfo = RampKit.getDeviceInfo();
-```
-
-## Direct User ID Access
-
-If you need the user ID before full initialization:
-
-```typescript
-import { getRampKitUserId } from "rampkit-expo-dev";
-
-const userId = await getRampKitUserId();
-```
-
-<Warning>
-Always call `RampKit.init()` before calling `showOnboarding()` or any other SDK methods. The SDK will log a warning if methods are called before initialization.
-</Warning>
-
-## Auto-Show Onboarding
-
-For the simplest integration, enable auto-show:
-
-```typescript
 await RampKit.init({
   appId: "YOUR_APP_ID",
-  autoShowOnboarding: true,
-  onOnboardingFinished: () => {
+  onOnboardingFinished: (payload) => {
+    // Navigate to your main app
     navigation.replace("Home");
+  },
+  onShowPaywall: (payload) => {
+    // Show your paywall (RevenueCat, etc.)
   },
 });
 ```
 
-This automatically shows your onboarding flow after initialization completes successfully.
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `appId` | Your app ID from the RampKit dashboard |
+| `autoShowOnboarding` | Auto-show after init (default: `false`) |
+| `onOnboardingFinished` | Called when user completes onboarding |
+| `onShowPaywall` | Called when onboarding triggers a paywall |
+
+## Get Your App ID
+
+1. Go to [RampKit Dashboard](https://rampkit.com)
+2. Settings → App Configuration
+3. Copy your App ID

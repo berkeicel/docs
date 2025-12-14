@@ -1,81 +1,24 @@
 ---
-title: "RevenueCat Integration"
-description: "Integrate RevenueCat for in-app purchases"
+title: "RevenueCat"
+description: "Integrate RevenueCat for purchases"
 ---
-
-Integrate RevenueCat with RampKit for handling purchases triggered from onboarding.
-
-## Setup
-
-```bash
-npx expo install react-native-purchases
-```
-
-## Initialize Both SDKs
 
 ```typescript
 import { RampKit } from "rampkit-expo-dev";
 import Purchases from "react-native-purchases";
 
-useEffect(() => {
-  async function init() {
-    // Initialize RevenueCat first
-    await Purchases.configure({ apiKey: "YOUR_REVENUECAT_KEY" });
+// Initialize RevenueCat first
+await Purchases.configure({ apiKey: "YOUR_REVENUECAT_KEY" });
 
-    // Then initialize RampKit
-    await RampKit.init({
-      appId: "YOUR_APP_ID",
-      onShowPaywall: async (payload) => {
-        await handlePaywall(payload);
-      },
-    });
-  }
-  init();
-}, []);
-```
-
-## Handle Paywall
-
-```typescript
-async function handlePaywall(payload?: { productId?: string }) {
-  try {
+// Then RampKit
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onShowPaywall: async (payload) => {
     const offerings = await Purchases.getOfferings();
-    
     if (offerings.current) {
-      // Find requested package or use first
-      const packages = offerings.current.availablePackages;
-      const pkg = payload?.productId
-        ? packages.find(p => p.product.identifier === payload.productId)
-        : packages[0];
-
-      if (pkg) {
-        await Purchases.purchasePackage(pkg);
-        console.log("Purchase successful!");
-      }
+      const pkg = offerings.current.availablePackages[0];
+      await Purchases.purchasePackage(pkg);
     }
-  } catch (error) {
-    if (error.userCancelled) {
-      console.log("User cancelled");
-    } else {
-      console.error("Purchase error:", error);
-    }
-  }
-}
+  },
+});
 ```
-
-## Trigger from Onboarding
-
-In your onboarding content:
-
-```javascript
-function handleUpgrade() {
-  window.ReactNativeWebView.postMessage(JSON.stringify({
-    type: 'rampkit:show-paywall',
-    payload: { productId: 'pro_monthly' }
-  }));
-}
-```
-
-<Tip>
-Initialize RevenueCat **before** RampKit for best results.
-</Tip>

@@ -1,42 +1,25 @@
 ---
 title: "Expo SDK"
-description: "Build, test, and deploy personalized onboarding experiences with instant updates"
+description: "Display onboarding flows built in the RampKit editor"
 ---
 
-The RampKit Expo SDK enables you to create, edit, and deploy onboarding flows from the web—no app releases required.
-
-## Features
-
-<CardGroup cols={2}>
-  <Card title="Visual Web Builder" icon="paintbrush">
-    Design onboardings in the RampKit dashboard
-  </Card>
-  <Card title="Instant Updates" icon="bolt">
-    Push changes without app store releases
-  </Card>
-  <Card title="A/B Testing" icon="flask">
-    Test different flows and measure conversion
-  </Card>
-  <Card title="Personalization" icon="user">
-    Show content based on device, locale, and user
-  </Card>
-</CardGroup>
+The RampKit Expo SDK displays onboarding flows you build in the [RampKit dashboard](https://rampkit.com). Design your onboarding in the editor, then show it with one line of code.
 
 ## Quick Start
 
 <Steps>
-  <Step title="Install the SDK">
+  <Step title="Install">
     ```bash
     npx expo install rampkit-expo-dev react-native-webview react-native-pager-view react-native-root-siblings
     ```
   </Step>
-  <Step title="Initialize RampKit">
+  <Step title="Initialize">
     ```typescript
     import { RampKit } from "rampkit-expo-dev";
 
     await RampKit.init({
       appId: "YOUR_APP_ID",
-      onOnboardingFinished: (payload) => {
+      onOnboardingFinished: () => {
         navigation.replace("Home");
       },
     });
@@ -49,69 +32,39 @@ The RampKit Expo SDK enables you to create, edit, and deploy onboarding flows fr
   </Step>
 </Steps>
 
-## Main API
+## That's It
+
+Everything else—screens, navigation, animations, haptics, variables, personalization—is configured in the RampKit editor. The SDK just displays what you build.
+
+## Configuration Options
 
 ```typescript
-import { RampKit } from "rampkit-expo-dev";
-
-// Initialize (required)
-await RampKit.init({ appId: "YOUR_APP_ID" });
-
-// Show/hide onboarding
-RampKit.showOnboarding();
-RampKit.closeOnboarding();
-
-// Check state
-RampKit.isInitialized();
-RampKit.getUserId();
-RampKit.getDeviceInfo();
-
-// Track events
-RampKit.trackEvent("custom_action", { key: "value" });
-RampKit.trackScreenView("screen_name");
-RampKit.trackCtaTap("button_id");
-
-// Cleanup
-await RampKit.cleanup();
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  autoShowOnboarding: true,  // Auto-show after init
+  onOnboardingFinished: (payload) => {
+    // User completed onboarding
+  },
+  onShowPaywall: (payload) => {
+    // Onboarding triggered a paywall
+  },
+});
 ```
 
-## Native APIs
+## API
 
-```typescript
-import { Haptics, StoreReview, Notifications } from "rampkit-expo-dev";
-
-// Haptics
-await Haptics.impactAsync("medium");
-await Haptics.notificationAsync("success");
-
-// Store Review
-await StoreReview.requestReview();
-
-// Notifications
-const result = await Notifications.requestPermissionsAsync();
-```
+| Method | Description |
+|--------|-------------|
+| `RampKit.init(config)` | Initialize the SDK |
+| `RampKit.showOnboarding()` | Show the onboarding |
+| `RampKit.closeOnboarding()` | Close the onboarding |
+| `RampKit.isInitialized()` | Check if ready |
+| `RampKit.getUserId()` | Get the user ID |
 
 ## Platform Support
 
-| Platform | Minimum Version |
-|----------|-----------------|
+| Platform | Version |
+|----------|---------|
 | iOS | 13.0+ |
 | Android | API 21+ |
 | Expo SDK | 49.0.0+ |
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Installation" icon="download" href="/expo/quickstart/install">
-    Set up the SDK
-  </Card>
-  <Card title="Initialization" icon="play" href="/expo/quickstart/initialize">
-    Configure RampKit
-  </Card>
-  <Card title="Show Onboarding" icon="window-restore" href="/expo/quickstart/load-first-flow">
-    Display your first flow
-  </Card>
-  <Card title="Event Tracking" icon="chart-simple" href="/expo/sdk/events">
-    Track analytics
-  </Card>
-</CardGroup>

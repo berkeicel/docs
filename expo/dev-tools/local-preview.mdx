@@ -1,10 +1,13 @@
 ---
-title: "Local Preview"
-description: "Load flows from your local editor for instant testing"
+title: "Preview"
+description: "Test locally"
 ---
 
-Load local HTML bundles for rapid iteration:
+Use development mode:
 
-```ts
-RampKit.setLocalPath("/Users/berke/projects/rampkit/flows");
+```typescript
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  environment: "development",
+});
 ```

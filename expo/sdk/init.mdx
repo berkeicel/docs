@@ -1,81 +1,22 @@
 ---
-title: "RampKit.init(config)"
-description: "Initialize the SDK. Call once before any other method."
+title: "RampKit.init()"
+description: "Initialize the SDK"
 ---
 
-The RampKit SDK is a singleton. Once initialized, it handles device info collection, event tracking, and onboarding management automatically.
-
-## Signature
-
 ```typescript
-async function init(config: RampKitConfig): Promise<void>
-```
-
-## Configuration
-
-```typescript
-interface RampKitConfig {
-  appId: string;
-  environment?: "production" | "development";
-  autoShowOnboarding?: boolean;
-  onOnboardingFinished?: (payload?: any) => void;
-  onShowPaywall?: (payload?: any) => void;
-}
-```
-
-## Example
-
-```typescript
-import { RampKit } from "rampkit-expo-dev";
-
 await RampKit.init({
-  appId: "app_abc123xyz",
-  environment: __DEV__ ? "development" : "production",
-  autoShowOnboarding: true,
-  onOnboardingFinished: (payload) => {
-    console.log("Onboarding finished with:", payload);
-    navigation.replace("Home");
-  },
-  onShowPaywall: (payload) => {
-    // Integrate with your paywall (RevenueCat, etc.)
-    showPaywall(payload?.productId);
-  },
+  appId: "YOUR_APP_ID",
+  autoShowOnboarding: false,
+  onOnboardingFinished: (payload) => {},
+  onShowPaywall: (payload) => {},
 });
 ```
 
-## Parameters
+## Options
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `appId` | `string` | ✓ | Your RampKit app ID from the dashboard |
-| `environment` | `string` | | `"production"` (default) or `"development"` |
-| `autoShowOnboarding` | `boolean` | | Auto-show onboarding after init (default: `false`) |
-| `onOnboardingFinished` | `function` | | Called when onboarding completes |
-| `onShowPaywall` | `function` | | Called when a paywall action is triggered |
-
-## Accessors
-
-After initialization, access SDK state:
-
-```typescript
-// Check if initialized
-RampKit.isInitialized(): boolean
-
-// Get user ID
-RampKit.getUserId(): string | null
-
-// Get device info
-RampKit.getDeviceInfo(): DeviceInfo | null
-```
-
-## Cleanup
-
-Call `cleanup()` when your app terminates or user logs out:
-
-```typescript
-await RampKit.cleanup();
-```
-
-<Warning>
-`init()` is async but you don't have to await it. The SDK queues operations until initialization completes. However, `showOnboarding()` requires onboarding data to be loaded first.
-</Warning>
+| Option | Type | Description |
+|--------|------|-------------|
+| `appId` | `string` | Your app ID from the dashboard |
+| `autoShowOnboarding` | `boolean` | Auto-show after init |
+| `onOnboardingFinished` | `function` | Called when onboarding completes |
+| `onShowPaywall` | `function` | Called when paywall is triggered |

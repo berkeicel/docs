@@ -1,57 +1,8 @@
 ---
 title: "Conversion Analytics"
-description: "Track and analyze conversion funnel performance"
+description: "View in dashboard"
 ---
 
-Use RampKit's analytics to understand how users move through your onboarding.
+View conversion funnels and analytics in the [RampKit dashboard](https://rampkit.com).
 
-## Automatic Tracking
-
-The SDK tracks:
-
-| Event | Data |
-|-------|------|
-| `onboarding_started` | Flow ID, total steps |
-| `onboarding_screen_viewed` | Screen ID, index |
-| `onboarding_completed` | Time to complete, steps |
-| `onboarding_abandoned` | Reason, last screen |
-| `notifications_response` | Permission status |
-| `purchase_completed` | Product, amount |
-
-## Key Metrics
-
-| Metric | Calculation |
-|--------|-------------|
-| **Completion Rate** | Completed / Started |
-| **Drop-off Rate** | Abandoned by screen |
-| **Time to Complete** | Average seconds |
-| **Notification Opt-in** | Granted / Prompted |
-| **Purchase Rate** | Purchases / Completed |
-
-## Custom Events
-
-Track additional conversion points:
-
-```typescript
-// Track trial start
-RampKit.trackEvent("trial_started", { plan: "premium" });
-
-// Track feature activation
-RampKit.trackEvent("feature_activated", { feature: "dark_mode" });
-```
-
-## Forward to Analytics
-
-```typescript
-import { eventManager } from "rampkit-expo-dev";
-
-const originalTrack = eventManager.track.bind(eventManager);
-eventManager.track = async (eventName, properties, context) => {
-  await originalTrack(eventName, properties, context);
-  myAnalytics.track(eventName, properties);
-};
-```
-
-<Tip>
-Use the RampKit dashboard to visualize funnels and identify drop-off points.
-</Tip>
+Events are tracked automatically by the SDK.

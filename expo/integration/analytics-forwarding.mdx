@@ -1,86 +1,16 @@
 ---
 title: "Analytics Forwarding"
-description: "Forward RampKit events to your analytics provider"
+description: "Forward events to your analytics"
 ---
-
-Forward RampKit events to your analytics stack (Amplitude, Mixpanel, Firebase, etc.).
-
-## Basic Forwarding
 
 ```typescript
 import { eventManager } from "rampkit-expo-dev";
 
 const originalTrack = eventManager.track.bind(eventManager);
-
 eventManager.track = async (eventName, properties, context) => {
-  // Send to RampKit
   await originalTrack(eventName, properties, context);
   
   // Forward to your analytics
-  myAnalytics.track(eventName, {
-    ...properties,
-    flow_id: context?.flowId,
-    variant_id: context?.variantId,
-  });
+  myAnalytics.track(eventName, properties);
 };
 ```
-
-## Amplitude
-
-```typescript
-import * as Amplitude from "@amplitude/analytics-react-native";
-
-eventManager.track = async (eventName, properties, context) => {
-  await originalTrack(eventName, properties, context);
-  Amplitude.track(eventName, properties);
-};
-```
-
-## Mixpanel
-
-```typescript
-import { Mixpanel } from "mixpanel-react-native";
-
-const mixpanel = new Mixpanel("YOUR_TOKEN");
-
-eventManager.track = async (eventName, properties, context) => {
-  await originalTrack(eventName, properties, context);
-  mixpanel.track(eventName, properties);
-};
-```
-
-## Firebase Analytics
-
-```typescript
-import analytics from "@react-native-firebase/analytics";
-
-eventManager.track = async (eventName, properties, context) => {
-  await originalTrack(eventName, properties, context);
-  
-  const firebaseEventName = eventName.replace(/[^a-zA-Z0-9_]/g, "_").slice(0, 40);
-  await analytics().logEvent(firebaseEventName, properties);
-};
-```
-
-## Selective Forwarding
-
-Forward only specific events:
-
-```typescript
-const eventsToForward = [
-  "onboarding_completed",
-  "purchase_completed",
-];
-
-eventManager.track = async (eventName, properties, context) => {
-  await originalTrack(eventName, properties, context);
-  
-  if (eventsToForward.includes(eventName)) {
-    myAnalytics.track(eventName, properties);
-  }
-};
-```
-
-<Tip>
-Set up forwarding **after** `RampKit.init()` completes. Include `flowId` and `variantId` for A/B test analysis.
-</Tip>

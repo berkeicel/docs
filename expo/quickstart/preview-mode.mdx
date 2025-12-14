@@ -1,55 +1,19 @@
 ---
-title: "Preview Mode"
-description: "Test onboarding during development"
+title: "Testing"
+description: "Test your onboarding during development"
 ---
 
-Use development mode to test and debug your onboarding integration.
-
-## Development Environment
-
-Enable development mode for additional logging:
+Use development mode for debug logs:
 
 ```typescript
-RampKit.init({
+await RampKit.init({
   appId: "YOUR_APP_ID",
   environment: "development",
 });
 ```
 
-In development mode, the SDK logs:
-
-- Initialization steps
-- Device info collection
-- Event tracking
-- Variable updates
-
-## Debug Console
-
-All RampKit logs are prefixed with `[RampKit]` for easy filtering:
-
-```
-[RampKit] Init: Collecting device info...
-[RampKit] Init: userId rk_abc123...
-[RampKit] Init: Onboarding loaded
-[RampKit] EventManager: Event sent: onboarding_started
-```
-
-## Device Context Testing
-
-Test template variable resolution:
-
-```typescript
-import { buildRampKitContext, collectDeviceInfo } from "rampkit-expo-dev";
-
-async function debugContext() {
-  const deviceInfo = await collectDeviceInfo();
-  const context = buildRampKitContext(deviceInfo);
-  
-  console.log("Device context:", context.device);
-  console.log("User context:", context.user);
-}
-```
+Logs are prefixed with `[RampKit]` for easy filtering.
 
 <Warning>
-Always test on real devices before publishing. Simulator/emulator behavior may differ for haptics, notifications, and purchases.
+Test on real devices for haptics and purchases.
 </Warning>

@@ -1,13 +1,6 @@
 ---
-title: "A/B Testing Integration"
-description: "Create experiments and consume variants programmatically"
+title: "A/B Testing"
+description: "Managed in dashboard"
 ---
 
-```ts
-const variant = RampKit.getActiveVariant("onboarding_flow");
-if (variant === "B") {
-  analytics.logEvent("variant_B_seen");
-}
-```
-
-Variants automatically propagate through the editor.
+Configure A/B tests in the [RampKit dashboard](https://rampkit.com). The SDK handles variant assignment automatically.

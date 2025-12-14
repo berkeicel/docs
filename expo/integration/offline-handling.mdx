@@ -1,6 +1,6 @@
 ---
-title: "Offline Handling"
-description: "Use cached flows when the network is unavailable"
+title: "Offline"
+description: "Handled automatically"
 ---
 
-RampKit automatically caches the latest version of each flow. If offline, the SDK loads from cache and reports events once reconnected.
+The SDK handles offline scenarios gracefully. Check `RampKit.isInitialized()` before showing onboarding.

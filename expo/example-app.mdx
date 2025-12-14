@@ -1,91 +1,27 @@
 ---
-title: "Example App"
-description: "Complete example demonstrating RampKit integration"
+title: "Example"
+description: "Example app"
 ---
 
-Explore a complete example app that demonstrates RampKit integration.
-
-## Example Application
-
-<Card title="Minimal Expo Example" icon="code" href="/expo/example-app/minimal-expo">
-  Complete working example with initialization, onboarding, and event tracking
-</Card>
-
-## Features Demonstrated
-
-- SDK initialization and configuration
-- Showing onboarding flows
-- Event tracking
-- RevenueCat integration
-- Native APIs (haptics, notifications, store review)
-
-## Quick Start
-
-```bash
-# Clone the repository
-git clone https://github.com/getrampkit/rampkit-expo
-cd example-app
-
-# Install dependencies
-npm install
-
-# Start development
-npm start
-```
-
-## Key Code
-
-### App.tsx
-
 ```typescript
-import { useEffect, useState } from "react";
-import { View, Button, Text, StyleSheet } from "react-native";
+import { useEffect } from "react";
+import { Button, View } from "react-native";
 import { RampKit } from "rampkit-expo-dev";
 
 export default function App() {
-  const [ready, setReady] = useState(false);
-
   useEffect(() => {
-    async function init() {
-      await RampKit.init({
-        appId: "YOUR_APP_ID",
-        onOnboardingFinished: () => {
-          console.log("Complete!");
-        },
-      });
-      setReady(true);
-    }
-    init();
+    RampKit.init({
+      appId: "YOUR_APP_ID",
+      onOnboardingFinished: () => console.log("Done!"),
+    });
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>RampKit Demo</Text>
-      <Button
-        title="Start Onboarding"
-        onPress={() => RampKit.showOnboarding()}
-        disabled={!ready}
-      />
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <Button title="Start" onPress={() => RampKit.showOnboarding()} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 24, marginBottom: 20 },
-});
 ```
 
-## Run on Device
-
-```bash
-# iOS
-npx expo run:ios
-
-# Android
-npx expo run:android
-```
-
-<Note>
-Replace `YOUR_APP_ID` with your actual app ID from the RampKit dashboard.
-</Note>
+Get your App ID from [RampKit Dashboard](https://rampkit.com).

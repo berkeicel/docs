@@ -1,61 +1,10 @@
 ---
 title: "Security"
-description: "Security considerations and best practices"
+description: "Security notes"
 ---
 
-RampKit is designed with security in mind.
+- User IDs stored in Keychain (iOS) / EncryptedSharedPreferences (Android)
+- All data transmitted over HTTPS
+- Keep your App ID private
 
-## Secure Storage
-
-User IDs are stored securely:
-- **iOS**: Keychain Services
-- **Android**: EncryptedSharedPreferences
-
-## Data Transmission
-
-All data is transmitted over HTTPS with TLS 1.2+.
-
-## App ID Security
-
-Keep your app ID private:
-
-```typescript
-// ❌ Avoid hardcoding in visible places
-await RampKit.init({ appId: "app_abc123xyz" });
-
-// ✅ Use environment variables
-import Constants from "expo-constants";
-await RampKit.init({ appId: Constants.expoConfig.extra.rampkitAppId });
-```
-
-### Expo Configuration
-
-```javascript
-// app.config.js
-export default {
-  extra: {
-    rampkitAppId: process.env.RAMPKIT_APP_ID,
-  },
-};
-```
-
-## Best Practices
-
-<Tip>
-
-**Do:**
-- Use environment variables for app IDs
-- Review onboarding content for sensitive data
-- Use secure paywall integrations
-
-**Don't:**
-- Include personal data in event properties
-- Hardcode credentials in source code
-
-</Tip>
-
-## Reporting Issues
-
-If you discover a security vulnerability:
-- Email: security@rampkit.com
-- We'll respond within 48 hours
+Report issues: security@rampkit.com

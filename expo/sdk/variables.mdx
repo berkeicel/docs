@@ -1,75 +1,12 @@
 ---
-title: "Device Info & Context"
-description: "Access device information for personalization"
+title: "Device Info"
+description: "Access device information"
 ---
 
-The RampKit SDK collects device information that powers template variables and analytics.
-
-## Get Device Info
-
-After initialization, access the collected device info:
-
 ```typescript
-import { RampKit } from "rampkit-expo-dev";
-
 const deviceInfo = RampKit.getDeviceInfo();
 
-console.log(deviceInfo?.platform);        // "iOS"
-console.log(deviceInfo?.deviceModel);     // "iPhone 15 Pro"
-console.log(deviceInfo?.deviceLocale);    // "en_US"
-console.log(deviceInfo?.isFirstLaunch);   // true
+console.log(deviceInfo?.platform);    // "iOS"
+console.log(deviceInfo?.deviceModel); // "iPhone 15 Pro"
+console.log(deviceInfo?.isFirstLaunch); // true
 ```
-
-## Key Device Info Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `appUserId` | string | Stable user ID |
-| `platform` | string | "iOS", "Android", "iPadOS" |
-| `deviceModel` | string | Device model name |
-| `deviceLocale` | string | User's locale (e.g., "en_US") |
-| `deviceCurrencyCode` | string | Currency code (e.g., "USD") |
-| `deviceCurrencySymbol` | string | Currency symbol (e.g., "$") |
-| `isFirstLaunch` | boolean | True on first app launch |
-| `launchCount` | number | Total app launches |
-| `interfaceStyle` | string | "light", "dark", or "unspecified" |
-
-## Build Context for Templates
-
-```typescript
-import { buildRampKitContext, collectDeviceInfo } from "rampkit-expo-dev";
-
-const deviceInfo = await collectDeviceInfo();
-const context = buildRampKitContext(deviceInfo);
-
-console.log(context.device.platform);     // "iOS"
-console.log(context.device.currencyCode); // "USD"
-console.log(context.user.isNewUser);      // true
-```
-
-## Session Tracking
-
-```typescript
-import { getSessionDurationSeconds } from "rampkit-expo-dev";
-
-const duration = getSessionDurationSeconds();
-console.log("Session duration:", duration, "seconds");
-```
-
-## User ID
-
-Get the stable user ID:
-
-```typescript
-// After initialization
-const userId = RampKit.getUserId();
-
-// Or directly
-import { getRampKitUserId } from "rampkit-expo-dev";
-const userId = await getRampKitUserId();
-```
-
-The user ID is:
-- Generated on first launch
-- Stored securely in Keychain (iOS) / SharedPreferences (Android)
-- Persists across app updates

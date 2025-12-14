@@ -1,13 +1,6 @@
 ---
-title: "Server-Side User Sync"
-description: "Sync RampKit user attributes with your backend"
+title: "Server Sync"
+description: "Automatic"
 ---
 
-```ts
-const attrs = RampKit.getUserAttributes();
-await fetch("https://api.yourbackend.com/rampkit-sync", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(attrs),
-});
-```
+The SDK syncs with the RampKit backend automatically during initialization.

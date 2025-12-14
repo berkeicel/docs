@@ -1,14 +1,18 @@
 ---
-title: "Lifecycle Management"
-description: "Reset sessions and re-attribute users after auth changes"
+title: "Lifecycle"
+description: "SDK lifecycle"
 ---
 
-If your app includes authentication or user switching, call:
+```typescript
+// Initialize
+await RampKit.init({ appId: "YOUR_APP_ID" });
 
-```ts
-RampKit.reset();
-RampKit.setUserAttributes(newUser);
-RampKit.loadFlow("welcome_back");
+// Show
+RampKit.showOnboarding();
+
+// Close
+RampKit.closeOnboarding();
+
+// Cleanup (optional)
+await RampKit.cleanup();
 ```
-
-This ensures a fresh session context per user.

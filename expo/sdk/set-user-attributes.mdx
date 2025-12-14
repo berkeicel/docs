@@ -1,210 +1,24 @@
 ---
-title: "Native APIs"
-description: "Use built-in haptics, store review, notifications, and transaction observer"
+title: "Utilities"
+description: "Additional SDK utilities"
 ---
 
-The RampKit SDK includes native modules that replace common Expo packages. These are used internally by the onboarding system and also exposed for your app to use directly.
-
-## Haptics
-
-Replaces `expo-haptics`. Provides haptic feedback for touch interactions.
+## Check Initialization
 
 ```typescript
-import { Haptics } from "rampkit-expo-dev";
-
-// Impact feedback - for button presses, UI feedback
-await Haptics.impactAsync("light");   // Light tap
-await Haptics.impactAsync("medium");  // Standard tap
-await Haptics.impactAsync("heavy");   // Strong tap
-await Haptics.impactAsync("rigid");   // Sharp, precise
-await Haptics.impactAsync("soft");    // Gentle, cushioned
-
-// Notification feedback - for outcomes/results
-await Haptics.notificationAsync("success"); // Task completed
-await Haptics.notificationAsync("warning"); // Attention needed
-await Haptics.notificationAsync("error");   // Something went wrong
-
-// Selection feedback - for picker/scroll changes
-await Haptics.selectionAsync();
+RampKit.isInitialized(); // boolean
 ```
 
-### Impact Styles
-
-| Style | Use Case |
-|-------|----------|
-| `light` | Subtle UI feedback, toggles |
-| `medium` | Button presses, standard actions |
-| `heavy` | Important actions, confirmations |
-| `rigid` | Precise, mechanical feel |
-| `soft` | Gentle, organic feel |
-
-### Notification Types
-
-| Type | Use Case |
-|------|----------|
-| `success` | Action completed successfully |
-| `warning` | Attention required, potential issue |
-| `error` | Action failed, error occurred |
-
-<Note>
-Haptics fail silently if unavailable (e.g., on simulator or unsupported devices).
-</Note>
-
-## Store Review
-
-Replaces `expo-store-review`. Prompts users to rate your app.
+## Get User ID
 
 ```typescript
-import { StoreReview } from "rampkit-expo-dev";
-
-// Check if review prompt is available
-const available = await StoreReview.isAvailableAsync();
-
-if (available) {
-  // Request in-app review
-  await StoreReview.requestReview();
-}
-
-// Check if review action is supported
-const hasAction = await StoreReview.hasAction();
+RampKit.getUserId(); // string | null
 ```
 
-### Best Practices
+## Cleanup
 
-- **Don't spam** — Apple/Google may throttle if requested too often
-- **Time it well** — After positive moments (completing onboarding, achieving goals)
-- **Check availability** — Always verify before requesting
-- **No guarantees** — The system decides whether to show the prompt
+Call when app terminates or user logs out:
 
 ```typescript
-// Good pattern: After successful onboarding
-RampKit.init({
-  appId: "YOUR_APP_ID",
-  onOnboardingFinished: async () => {
-    // Wait a moment, then request review
-    setTimeout(async () => {
-      const available = await StoreReview.isAvailableAsync();
-      if (available) {
-        await StoreReview.requestReview();
-      }
-    }, 2000);
-  },
-});
-```
-
-## Notifications
-
-Replaces `expo-notifications`. Request and check notification permissions.
-
-```typescript
-import { Notifications } from "rampkit-expo-dev";
-
-// Request permissions
-const result = await Notifications.requestPermissionsAsync({
-  ios: {
-    allowAlert: true,
-    allowBadge: true,
-    allowSound: true,
-  },
-  android: {
-    channelId: "default",
-    name: "Default Channel",
-    importance: "MAX",
-  },
-});
-
-console.log("Granted:", result.granted);
-console.log("Status:", result.status);
-console.log("Can ask again:", result.canAskAgain);
-
-// Check current permissions
-const status = await Notifications.getPermissionsAsync();
-```
-
-### Permission Result
-
-```typescript
-interface NotificationPermissionResult {
-  granted: boolean;
-  status: "undetermined" | "denied" | "granted" | "provisional" | "ephemeral";
-  canAskAgain: boolean;
-  ios?: {
-    alertSetting?: string;
-    badgeSetting?: string;
-    soundSetting?: string;
-    lockScreenSetting?: string;
-    notificationCenterSetting?: string;
-  };
-  error?: string;
-}
-```
-
-### iOS Options
-
-| Option | Description |
-|--------|-------------|
-| `allowAlert` | Show alert notifications |
-| `allowBadge` | Update app icon badge |
-| `allowSound` | Play notification sounds |
-
-### Android Options
-
-| Option | Description |
-|--------|-------------|
-| `channelId` | Notification channel ID |
-| `name` | Channel display name |
-| `importance` | `"MAX"`, `"HIGH"`, `"DEFAULT"`, `"LOW"`, `"MIN"` |
-
-## Transaction Observer
-
-Automatic purchase tracking using StoreKit 2 (iOS) / Google Play Billing (Android).
-
-```typescript
-import { TransactionObserver } from "rampkit-expo-dev";
-
-// Start observing purchases (called automatically during init)
-await TransactionObserver.start("YOUR_APP_ID");
-
-// Stop observing
-await TransactionObserver.stop();
-```
-
-The transaction observer:
-- Automatically starts during `RampKit.init()`
-- Monitors purchase transactions
-- Sends purchase events to RampKit backend
-- Tracks `purchase_started`, `purchase_completed`, `purchase_failed`
-
-### Events Tracked
-
-| Event | Properties |
-|-------|------------|
-| `purchase_started` | `productId`, `amount`, `currency` |
-| `purchase_completed` | `productId`, `amount`, `currency`, `transactionId`, `originalTransactionId`, `purchaseDate` |
-| `purchase_failed` | `productId`, `errorCode`, `errorMessage` |
-
-<Warning>
-The transaction observer runs in the native layer. It tracks purchases made through StoreKit/Play Billing regardless of your paywall solution (RevenueCat, Adapty, direct purchases).
-</Warning>
-
-## Native Module Access
-
-For advanced use cases, access the native module directly:
-
-```typescript
-import RampKitNative from "rampkit-expo-dev";
-
-// Get device info
-const info = await RampKitNative.getDeviceInfo();
-
-// Get user ID
-const userId = await RampKitNative.getUserId();
-
-// Secure storage
-await RampKitNative.setStoredValue("my_key", "my_value");
-const value = await RampKitNative.getStoredValue("my_key");
-
-// Launch tracking
-const launchData = await RampKitNative.getLaunchTrackingData();
-console.log(launchData.isFirstLaunch, launchData.launchCount);
+await RampKit.cleanup();
 ```

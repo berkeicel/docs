@@ -1,60 +1,8 @@
 ---
 title: "A/B Testing"
-description: "Run experiments on your onboarding flows"
+description: "Run experiments"
 ---
 
-RampKit supports A/B testing for onboarding flows. Test different designs to optimize conversion.
+Create and manage A/B tests in the [RampKit dashboard](https://rampkit.com).
 
-## How It Works
-
-1. Create variants in the RampKit dashboard
-2. SDK assigns users to variants automatically
-3. Track completion and conversion events
-4. Analyze results in the dashboard
-
-## Variant Assignment
-
-Users are automatically assigned to variants:
-- **Deterministic** — Same user always sees same variant
-- **Persistent** — Survives app restarts
-- **Balanced** — Even distribution
-
-## Tracking
-
-All events include variant context automatically:
-
-```typescript
-// Events include context.flowId and context.variantId
-```
-
-## Forward to Analytics
-
-Include variant info in your analytics:
-
-```typescript
-import { eventManager } from "rampkit-expo-dev";
-
-const originalTrack = eventManager.track.bind(eventManager);
-eventManager.track = async (eventName, properties, context) => {
-  await originalTrack(eventName, properties, context);
-  
-  myAnalytics.track(eventName, {
-    ...properties,
-    variant_id: context?.variantId,
-  });
-};
-```
-
-## Key Metrics
-
-Track per variant:
-- Onboarding completion rate
-- Drop-off by screen
-- Notification opt-in rate
-- Purchase conversion rate
-
-<Tip>
-- Test one thing at a time
-- Run tests for at least 7 days
-- Aim for 1,000+ users per variant
-</Tip>
+The SDK automatically assigns users to variants and tracks results.

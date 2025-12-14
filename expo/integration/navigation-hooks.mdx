@@ -1,11 +1,13 @@
 ---
-title: "Navigation Hooks"
-description: "Control app navigation when a flow ends"
+title: "Navigation"
+description: "Handle completion"
 ---
 
-```ts
-RampKit.loadFlow("intro", {
-  onComplete: () => navigation.replace("Home"),
-  onExit: () => navigation.navigate("Signup"),
+```typescript
+await RampKit.init({
+  appId: "YOUR_APP_ID",
+  onOnboardingFinished: () => {
+    navigation.replace("Home");
+  },
 });
 ```

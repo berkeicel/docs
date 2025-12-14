@@ -1,103 +1,24 @@
 ---
 title: "Event Tracking"
-description: "Track analytics events with the RampKit SDK"
+description: "Track custom analytics events"
 ---
 
-RampKit includes comprehensive event tracking. Events are sent to the RampKit backend and can be forwarded to your analytics provider.
-
-## Automatic Events
-
-These events are tracked automatically:
-
-### App Lifecycle
-
-| Event | Description |
-|-------|-------------|
-| `app_session_started` | App launched |
-| `app_backgrounded` | App went to background |
-| `app_foregrounded` | App came to foreground |
-
-### Onboarding
-
-| Event | Description |
-|-------|-------------|
-| `onboarding_started` | Onboarding overlay shown |
-| `onboarding_screen_viewed` | Screen displayed |
-| `onboarding_completed` | User finished all screens |
-| `onboarding_abandoned` | User closed early |
-
-### Notifications
-
-| Event | Description |
-|-------|-------------|
-| `notifications_prompt_shown` | Permission dialog shown |
-| `notifications_response` | User responded to permission |
-
-### Purchases
-
-| Event | Description |
-|-------|-------------|
-| `purchase_started` | Purchase initiated |
-| `purchase_completed` | Purchase successful |
-| `purchase_failed` | Purchase failed |
-
-## Manual Event Tracking
-
-### Track Custom Event
+Track custom events for your own analytics:
 
 ```typescript
-RampKit.trackEvent("custom_action", {
-  buttonId: "cta_upgrade",
-  screen: "pricing",
-  value: 29.99,
-});
+RampKit.trackEvent("custom_action", { key: "value" });
+RampKit.trackScreenView("screen_name");
+RampKit.trackCtaTap("button_id");
 ```
 
-### Track Screen View
-
-```typescript
-RampKit.trackScreenView("profile_settings", "home");
-// Parameters: screenName, referrer (optional)
-```
-
-### Track CTA Tap
-
-```typescript
-RampKit.trackCtaTap("upgrade_button", "Upgrade to Pro");
-// Parameters: buttonId, buttonText (optional)
-```
-
-## Event Manager Access
-
-For advanced use cases:
-
-```typescript
-import { eventManager } from "rampkit-expo-dev";
-
-// Track paywall events
-eventManager.trackPaywallShown("paywall_main", "onboarding");
-eventManager.trackPaywallPrimaryActionTap("paywall_main", "pro_monthly");
-eventManager.trackPaywallClosed("paywall_main", "purchased");
-```
-
-## Event Forwarding
-
-Forward events to your analytics provider:
+## Forward to Analytics
 
 ```typescript
 import { eventManager } from "rampkit-expo-dev";
 
 const originalTrack = eventManager.track.bind(eventManager);
-
 eventManager.track = async (eventName, properties, context) => {
-  // Send to RampKit backend
   await originalTrack(eventName, properties, context);
-  
-  // Forward to your analytics
   myAnalytics.track(eventName, properties);
 };
 ```
-
-<Tip>
-All events are sent as "fire and forget" — they don't block your app's main thread.
-</Tip>

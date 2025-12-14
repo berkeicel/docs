@@ -1,120 +1,18 @@
 ---
 title: "Advanced"
-description: "Advanced configuration and customization options"
+description: "Advanced options"
 ---
 
-Advanced features for customizing RampKit behavior.
+Most configuration is done in the [RampKit dashboard](https://rampkit.com).
 
-## Advanced Topics
-
-<CardGroup cols={2}>
-  <Card title="Custom Variable Injection" icon="syringe" href="/expo/advanced/custom-variable-injection">
-    Inject custom variables into onboarding templates
-  </Card>
-  <Card title="Runtime Overrides" icon="sliders" href="/expo/advanced/runtime-overrides">
-    Override SDK behavior at runtime
-  </Card>
-  <Card title="Security" icon="shield" href="/expo/advanced/security">
-    Security best practices and considerations
-  </Card>
-</CardGroup>
-
-## Custom Context
-
-Extend the default context with custom variables:
-
-```typescript
-import { buildRampKitContext, collectDeviceInfo } from "rampkit-expo-dev";
-
-const deviceInfo = await collectDeviceInfo();
-const context = buildRampKitContext(deviceInfo);
-
-// Add custom context
-const extendedContext = {
-  ...context,
-  custom: {
-    userTier: "premium",
-    experimentGroup: "A",
-    referralSource: "twitter",
-  },
-};
-```
-
-## Native Module Direct Access
-
-Access the native module directly:
-
-```typescript
-import RampKitNative from "rampkit-expo-dev";
-
-// Get stored value
-const value = await RampKitNative.getStoredValue("my_key");
-
-// Set stored value
-await RampKitNative.setStoredValue("my_key", "my_value");
-
-// Get launch tracking data
-const launchData = await RampKitNative.getLaunchTrackingData();
-```
-
-## Event Manager Customization
-
-Override event handling:
+For event forwarding to your analytics:
 
 ```typescript
 import { eventManager } from "rampkit-expo-dev";
 
-// Batch events
-const eventQueue: any[] = [];
 const originalTrack = eventManager.track.bind(eventManager);
-
 eventManager.track = async (eventName, properties, context) => {
-  eventQueue.push({ eventName, properties, context, timestamp: Date.now() });
-  
-  // Flush every 10 events or 30 seconds
-  if (eventQueue.length >= 10) {
-    flushEvents();
-  }
+  await originalTrack(eventName, properties, context);
+  myAnalytics.track(eventName, properties);
 };
 ```
-
-## WebView Customization
-
-The SDK injects these scripts into WebViews:
-
-- **Hardening scripts** — Prevent text selection, zoom
-- **Button animations** — Tap feedback
-- **Variable handler** — State synchronization
-
-Custom scripts can be added via your onboarding's JavaScript.
-
-## Performance Optimization
-
-### Preload Onboarding
-
-The SDK preloads automatically, but ensure `init()` is called early:
-
-```typescript
-// In app entry point
-useEffect(() => {
-  RampKit.init({ appId: "YOUR_APP_ID" });
-  // Onboarding loads in background
-}, []);
-
-// Later, when needed
-RampKit.showOnboarding(); // Instant display
-```
-
-### Minimize WebView Complexity
-
-- Keep DOM simple
-- Avoid heavy CSS animations
-- Minimize JavaScript execution
-
-## Security Considerations
-
-See [Security](/expo/advanced/security) for:
-
-- Secure storage of user IDs
-- API key handling
-- Data transmission security
