@@ -1,13 +1,50 @@
 ---
-title: "reset"
-description: "Reset the SDK state on iOS"
+title: "RampKitCore.reset()"
+description: "Reset the SDK state and re-initialize"
 ---
 
 ## reset
 
 ```swift
-RampKit.reset()
+await RampKitCore.shared.reset()
 ```
 
-Clears cached state and user attributes. Call during logout or when switching accounts.
+Clears all cached state, user data, and session information, then re-initializes the SDK with the original configuration.
 
+### When to Use
+
+Call `reset()` when:
+- A user logs out of your app
+- You need to switch between user accounts
+- You want to clear all onboarding progress and start fresh
+
+### What Gets Reset
+
+- User ID and device info
+- Session data
+- Event tracking state (EventManager)
+- Onboarding data cache
+- Transaction observer
+- Any displayed overlays or loading views
+
+### Example
+
+```swift
+import RampKit
+
+// When user logs out
+func handleLogout() async {
+    // Reset RampKit state and re-initialize
+    await RampKitCore.shared.reset()
+
+    // Continue with your logout flow
+    await signOut()
+}
+```
+
+### Notes
+
+- The SDK will automatically re-initialize after reset using the original configuration passed to `initialize(config:)`
+- If `initialize()` was never called, `reset()` will log a warning and return without action
+- After reset, a new user ID will be generated and a fresh session will start
+- Requires iOS 14.0+ / macOS 11.0+
