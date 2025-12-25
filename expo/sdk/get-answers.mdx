@@ -1,0 +1,68 @@
+---
+title: "getAnswers"
+description: "Retrieve user answers from onboarding"
+---
+
+## getAnswers
+
+```typescript
+const answers = await RampKit.getAnswers();
+```
+
+Returns a promise that resolves to an object containing all user answers collected during onboarding. Answers are automatically saved when users interact with onboarding screens and persist across app launches.
+
+## Usage
+
+```typescript
+// Get all answers
+const answers = await RampKit.getAnswers();
+console.log(answers);
+// { userGender: "Male", healthGoal: "Lose Weight", age: "25-34", ... }
+
+// Access specific values
+console.log("Goal:", answers.healthGoal);
+console.log("Gender:", answers.userGender);
+```
+
+## getAnswer
+
+Get a single answer by key:
+
+```typescript
+const goal = await RampKit.getAnswer("healthGoal");
+// "Lose Weight"
+
+const gender = await RampKit.getAnswer("userGender");
+// "Male"
+```
+
+## Return Type
+
+```typescript
+// getAnswers returns:
+Record<string, any>
+
+// getAnswer returns:
+any // or undefined if key doesn't exist
+```
+
+## Example Response
+
+```json
+{
+  "userGender": "Male",
+  "userDiet": "No restrictions",
+  "age": "25-34",
+  "healthGoal": "Lose Weight",
+  "checkProductLabels": "Sometimes",
+  "hasHealthConditions": false
+}
+```
+
+## Notes
+
+- Answers are stored using native secure storage (Keychain on iOS, encrypted storage on Android)
+- Answers are initialized with default values when onboarding starts
+- Updates are saved automatically as users interact with onboarding screens
+- Answers are automatically cleared when `reset()` is called
+- Returns an empty object `{}` if no answers have been collected

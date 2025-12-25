@@ -1,0 +1,69 @@
+---
+title: "getAnswers"
+description: "Retrieve user answers from onboarding"
+---
+
+## getAnswers
+
+```swift
+let answers = RampKit.shared.getAnswers()
+```
+
+Returns a dictionary containing all user answers collected during onboarding. Answers are automatically saved when users interact with onboarding screens and persist across app launches.
+
+## Usage
+
+```swift
+// Get all answers
+let answers = RampKit.shared.getAnswers()
+print(answers)
+// ["userGender": "Male", "healthGoal": "Lose Weight", "age": "25-34", ...]
+
+// Access specific values
+if let goal = answers["healthGoal"] as? String {
+    print("Goal: \(goal)")
+}
+```
+
+## getAnswer
+
+Get a single answer by key:
+
+```swift
+let goal = RampKit.shared.getAnswer("healthGoal")
+// Optional("Lose Weight")
+
+let gender = RampKit.shared.getAnswer("userGender") as? String
+// "Male"
+```
+
+## Return Type
+
+```swift
+// getAnswers returns:
+[String: Any]
+
+// getAnswer returns:
+Any? // nil if key doesn't exist
+```
+
+## Example Response
+
+```swift
+[
+    "userGender": "Male",
+    "userDiet": "No restrictions",
+    "age": "25-34",
+    "healthGoal": "Lose Weight",
+    "checkProductLabels": "Sometimes",
+    "hasHealthConditions": false
+]
+```
+
+## Notes
+
+- Answers are stored in the device Keychain for security and persistence
+- Answers are initialized with default values when onboarding starts
+- Updates are saved automatically as users interact with onboarding screens
+- Answers are automatically cleared when `reset()` is called
+- Returns an empty dictionary `[:]` if no answers have been collected
